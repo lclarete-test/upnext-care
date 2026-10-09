@@ -12,3 +12,31 @@
 .newsletter-note{min-height:20px;margin:8px 0 0!important;color:var(--green-dark,#087261)!important;font-size:12px}
 .site-footer-contact{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
 @media(max-width:760px){.upnext-brand,.upnext-brand img{width:158px!important}.newsletter-grid{grid-template-columns:1fr;gap:26px}.newsletter-form{align-items:stretch;flex-direction:column}.newsletter-form button{min-height:44px}}
+
+/* Participant curriculum and tracking */
+.sidebar>.panel:has(#apple-options),#apple-dialog{display:none}
+.modules .module{width:100%;font:inherit;text-align:left}
+.modules button.module{appearance:none;cursor:pointer}
+.modules .module.locked{opacity:1;background:#fbfcfc;border-color:#dce4ee;color:#142744}
+.modules .module.locked:hover{border-color:#9fc7bc;background:#f6fbf9}
+.modules .module.locked .module-number{background:#eef2f3;color:#52657a}
+.modules .module.locked .module-status{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#eef2f3;color:#52657a;font-size:13px}
+.module-preview{display:none;margin:8px 0 0!important;color:#52657a;font-size:11px;line-height:1.45}
+.module[aria-expanded="true"] .module-preview{display:block}
+.module[aria-expanded="true"]{align-items:start}
+.checkin .summary{margin:2px 0 20px}
+.checkin .summary-card{padding:14px 11px;background:#f7faf9;border-color:#d8e6e1}
+.checkin .summary-card strong{font-size:21px;color:#142744}
+.checkin .summary-card span{font-size:10px;color:#52657a}
+.metric-switch{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:4px;margin:0 0 12px;border-radius:9px;background:#eef3f1}
+.metric-switch button{min-height:34px;padding:6px;border:0;border-radius:7px;background:transparent;color:#52657a;font-size:10px;font-weight:700;cursor:pointer}
+.metric-switch button[aria-pressed="true"]{background:#fff;color:#087261;box-shadow:0 2px 8px rgba(20,39,68,.08)}
+.checkin .chart{height:220px;margin:0 0 10px;padding:14px 14px 4px;border:1px solid #dce4ee;border-radius:11px;background:linear-gradient(180deg,#fff,#f8fbfa);position:relative}
+.checkin .chart svg{height:155px}
+.chart-heading{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:0 2px;color:#52657a;font-size:11px}
+.chart-heading strong{color:#142744;font-size:22px}
+.chart-dates{position:absolute;right:15px;bottom:8px;left:15px;display:flex;justify-content:space-between;color:#6b7b8d;font-size:9px}
+.checkin .history{margin:0 0 24px}
+.checkin .history-row{padding:9px 2px;color:#52657a}
+.entry-title{margin:22px 0 13px;padding-top:20px;border-top:1px solid #dce4ee;color:#142744;font-size:15px}
+@media(max-width:560px){.modules .module{grid-template-columns:38px 1fr 30px}.metric-switch{grid-template-columns:1fr}.checkin .chart{height:210px}.checkin .summary{grid-template-columns:1fr 1fr 1fr}}
