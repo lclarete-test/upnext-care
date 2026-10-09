@@ -1,6 +1,9 @@
 import { requireParticipant, getAllModuleStates, getCheckins, addCheckin, logout } from './dpp-firebase.js';
 
 const track = (event, parameters = {}) => window.gtag?.('event', event, parameters);
+const activeLanguage = window.DPPLanguage?.language || 'pt';
+const t = value => window.DPPLanguage?.t(value) || value;
+const locale = { en: 'en-US', es: 'es-US', pt: 'pt-BR' }[activeLanguage];
 
 const session = await requireParticipant();
 if (!session) throw new Error('Authentication required');
@@ -8,22 +11,21 @@ const { user, profile } = session;
 document.getElementById('welcome').textContent = `Olá, ${(profile.name || user.displayName || 'participante').split(' ')[0]}`;
 document.getElementById('date').value = new Date().toISOString().slice(0, 10);
 
-const titles = ['Introdução ao programa','Pratique atividade física para evitar T2','Monitore sua atividade física','Coma bem para evitar T2','Monitore sua alimentação','Pratique mais atividade física','Queime mais calorias do que você ingere','Coma alimentos saudáveis que você gosta','Administre o estresse','Coma bem fora de casa','Supere os gatilhos','Pratique atividade física para evitar T2','Assuma a responsabilidade por seus pensamentos','Retomar o controle','Obtenha ajuda','Fique motivado para evitar T2','Quando a perda de peso estaciona','Faça um intervalo para exercícios físicos','Mantenha seu coração saudável','Faça compras e cozinhe para evitar T2','Encontre tempo para exercícios físicos','Durma o suficiente','Faça exercícios fora de casa','Mais sobre T2','Mais sobre carboidratos','Evite T2 por toda a vida'];
 const moduleStates = await getAllModuleStates(user.uid);
 const list = document.getElementById('modules');
-let completed = 0;
-titles.forEach((title, index) => {
-  const number = index + 1;
-  const done = moduleStates.get(number)?.completed === true;
-  const unlocked = number === 1 || moduleStates.get(number - 1)?.completed === true;
-  if (done) completed++;
-  const item = document.createElement(unlocked ? 'a' : 'div');
-  item.className = `module${done ? ' complete' : ''}${unlocked ? '' : ' locked'}`;
-  if (unlocked) item.href = number === 1 ? 'dpp-modulo-1.html' : `dpp-modulo.html?modulo=${number}`;
-  item.innerHTML = `<span class="module-number">${done ? '✓' : String(number).padStart(2, '0')}</span><div><h3>${title}</h3><small>${done ? 'Concluído' : unlocked ? 'Disponível' : 'Conclua o módulo anterior'}</small></div><span class="module-status">${unlocked ? '→' : '🔒'}</span>`;
-  list.append(item);
-});
-const percent = Math.round(completed / 26 * 100);
+const onboardingComplete = moduleStates.get(0)?.completed === true;
+const item = document.createElement('a');
+item.className = `module${onboardingComplete ? ' complete' : ''}`;
+item.href = 'dpp-modulo-0.html';
+item.innerHTML = `<span class="module-number">${onboardingComplete ? '✓' : '00'}</span><div><h3>Boas-vindas e ponto de partida</h3><small>${onboardingComplete ? 'Concluído' : 'Disponível agora'}</small></div><span class="module-status">→</span>`;
+list.append(item);
+if (onboardingComplete) {
+  const note = document.createElement('p');
+  note.className = 'intro';
+  note.textContent = 'Seu cadastro inicial está concluído. A equipe entrará em contato sobre o início do programa.';
+  list.after(note);
+}
+const percent = onboardingComplete ? 100 : 0;
 document.getElementById('progress-ring').style.setProperty('--progress', percent * 3.6 + 'deg');
 document.getElementById('progress-value').textContent = percent + '%';
 
@@ -40,9 +42,9 @@ function renderSummary() {
   const stepDays = recent.filter(item => Number(item.steps) > 0);
   const averageSteps = stepDays.length ? Math.round(stepDays.reduce((sum, item) => sum + Number(item.steps), 0) / stepDays.length) : null;
   const activity = recent.reduce((sum, item) => sum + (Number(item.activity) || 0), 0);
-  document.getElementById('today-steps').textContent = todayRecord ? Number(todayRecord.steps).toLocaleString('pt-BR') : '—';
-  document.getElementById('week-steps').textContent = averageSteps ? averageSteps.toLocaleString('pt-BR') : '—';
-  document.getElementById('week-activity').textContent = activity.toLocaleString('pt-BR');
+  document.getElementById('today-steps').textContent = todayRecord ? Number(todayRecord.steps).toLocaleString(locale) : '—';
+  document.getElementById('week-steps').textContent = averageSteps ? averageSteps.toLocaleString(locale) : '—';
+  document.getElementById('week-activity').textContent = activity.toLocaleString(locale);
 }
 function render() {
   const chart = document.getElementById('chart');
@@ -63,7 +65,8 @@ function render() {
   } else {
     chart.innerHTML = '<div class="empty">Adicione um peso para iniciar o gráfico.</div>';
   }
-  history.innerHTML = checkins.slice(-4).reverse().map(item => `<div class="history-row"><span>${new Intl.DateTimeFormat('pt-BR').format(new Date(dateKey(item.date) + 'T12:00:00'))} · ${Number(item.steps || 0).toLocaleString('pt-BR')} passos · ${item.activity || 0} min</span><span>${item.weight ? item.weight + ' kg' : '—'}</span></div>`).join('');
+  const stepsLabel = { en: 'steps', es: 'pasos', pt: 'passos' }[activeLanguage];
+  history.innerHTML = checkins.slice(-4).reverse().map(item => `<div class="history-row"><span>${new Intl.DateTimeFormat(locale).format(new Date(dateKey(item.date) + 'T12:00:00'))} · ${Number(item.steps || 0).toLocaleString(locale)} ${stepsLabel} · ${item.activity || 0} min</span><span>${item.weight ? item.weight + ' kg' : '—'}</span></div>`).join('');
   renderSummary();
 }
 render();
@@ -78,7 +81,7 @@ document.getElementById('save').addEventListener('click', async event => {
   if (!date || (!weight && !activity && !steps && !sleep && !note)) return;
   const button = event.currentTarget;
   button.disabled = true;
-  button.textContent = 'Salvando…';
+  button.textContent = t('Salvando…');
   const record = { date, weight, activity, steps, sleep, note, source: 'manual' };
   try {
     await addCheckin(user.uid, record);
@@ -93,7 +96,7 @@ document.getElementById('save').addEventListener('click', async event => {
     render();
   } finally {
     button.disabled = false;
-    button.textContent = 'Salvar registro';
+    button.textContent = t('Salvar registro');
   }
 });
 

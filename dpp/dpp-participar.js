@@ -18,6 +18,27 @@ const bars = [...document.querySelectorAll('.stepper span')];
 let current = 0;
 let lastScreen = null;
 
+const eligibilityPanel = document.getElementById('eligibility-panel');
+const loginPanel = document.getElementById('login-panel');
+
+function showAccessMode(mode) {
+  const login = mode === 'login';
+  eligibilityPanel.hidden = login;
+  loginPanel.hidden = !login;
+  document.getElementById('participar').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+document.getElementById('show-login').addEventListener('click', () => {
+  history.replaceState(null, '', '#entrar');
+  showAccessMode('login');
+});
+document.getElementById('show-eligibility').addEventListener('click', () => {
+  history.replaceState(null, '', '#participar');
+  showAccessMode('eligibility');
+});
+window.addEventListener('hashchange', () => showAccessMode(location.hash === '#entrar' ? 'login' : 'eligibility'));
+if (location.hash === '#entrar') showAccessMode('login');
+
 function showStep(number) {
   current = number;
   steps.forEach((step, index) => step.classList.toggle('active', index === number));
@@ -97,7 +118,7 @@ document.getElementById('calculate').addEventListener('click', () => {
   const age = Number(document.getElementById('q-age').value);
   const weight = Number(document.getElementById('q-weight').value);
   const height = Number(document.getElementById('q-height').value);
-  if (age < 18 || !weight || !height) {
+  if (!age || !weight || !height) {
     message('q-error-0', 'Preencha idade, peso e altura para continuar.');
     return;
   }
