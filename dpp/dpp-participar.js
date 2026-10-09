@@ -21,23 +21,29 @@ let lastScreen = null;
 const eligibilityPanel = document.getElementById('eligibility-panel');
 const loginPanel = document.getElementById('login-panel');
 
-function showAccessMode(mode) {
+function showAccessMode(mode, emphasize = false) {
   const login = mode === 'login';
   eligibilityPanel.hidden = login;
   loginPanel.hidden = !login;
+  if (login && emphasize) {
+    loginPanel.classList.remove('attention');
+    requestAnimationFrame(() => loginPanel.classList.add('attention'));
+    setTimeout(() => loginPanel.classList.remove('attention'), 1400);
+    setTimeout(() => document.getElementById('login-google')?.focus({ preventScroll: true }), 450);
+  }
   document.getElementById('participar').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 document.getElementById('show-login').addEventListener('click', () => {
   history.replaceState(null, '', '#entrar');
-  showAccessMode('login');
+  showAccessMode('login', true);
 });
 document.getElementById('show-eligibility').addEventListener('click', () => {
   history.replaceState(null, '', '#participar');
   showAccessMode('eligibility');
 });
-window.addEventListener('hashchange', () => showAccessMode(location.hash === '#entrar' ? 'login' : 'eligibility'));
-if (location.hash === '#entrar') showAccessMode('login');
+window.addEventListener('hashchange', () => showAccessMode(location.hash === '#entrar' ? 'login' : 'eligibility', location.hash === '#entrar'));
+if (location.hash === '#entrar') showAccessMode('login', true);
 
 function showStep(number) {
   current = number;

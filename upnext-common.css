@@ -1,5 +1,5 @@
-.upnext-brand{display:inline-flex!important;align-items:center!important;width:190px!important;height:auto!important;overflow:visible!important;flex:0 0 auto;text-decoration:none!important}
-.upnext-brand img{display:block!important;width:190px!important;height:auto!important;margin:0!important;object-fit:contain!important}
+.upnext-brand{display:inline-flex!important;align-items:center!important;width:160px!important;height:auto!important;overflow:visible!important;flex:0 0 auto;text-decoration:none!important}
+.upnext-brand img{display:block!important;width:160px!important;height:auto!important;margin:0!important;object-fit:contain!important}
 .upnext-contact{color:inherit;font-weight:700;text-decoration:none}
 .newsletter{padding:62px 0;border-top:1px solid var(--line,#dce7e3);background:#f4faf7}
 .newsletter-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(420px,1.1fr);gap:64px;align-items:center}
@@ -11,7 +11,7 @@
 .newsletter-form button:disabled{opacity:.65;cursor:wait}
 .newsletter-note{min-height:20px;margin:8px 0 0!important;color:var(--green-dark,#087261)!important;font-size:12px}
 .site-footer-contact{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-@media(max-width:760px){.upnext-brand,.upnext-brand img{width:158px!important}.newsletter-grid{grid-template-columns:1fr;gap:26px}.newsletter-form{align-items:stretch;flex-direction:column}.newsletter-form button{min-height:44px}}
+@media(max-width:760px){.upnext-brand,.upnext-brand img{width:145px!important}.newsletter-grid{grid-template-columns:1fr;gap:26px}.newsletter-form{align-items:stretch;flex-direction:column}.newsletter-form button{min-height:44px}}
 
 /* Participant curriculum and tracking */
 .sidebar>.panel:has(#apple-options),#apple-dialog{display:none}
