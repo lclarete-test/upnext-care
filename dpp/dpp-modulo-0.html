@@ -19,7 +19,7 @@
 <section class="panel" data-panel="2"><h2>Sua rotina</h2><p class="intro">Estas respostas ajudam a planejar o acompanhamento.</p><div class="fields"><div class="field"><label for="activity-minutes">Quantos minutos de atividade física você faz em uma semana comum?</label><input id="activity-minutes" type="number" min="0" step="1" inputmode="numeric"></div><div class="field"><label for="best-time">Qual período costuma funcionar melhor para você?</label><select id="best-time"><option value="morning">Manhã</option><option value="afternoon">Tarde</option><option value="evening">Noite</option><option value="varies">Varia</option></select></div><div class="field full"><label for="accessibility">Há algo que possamos fazer para tornar o programa mais acessível para você? (opcional)</label><textarea id="accessibility"></textarea></div></div><div class="message" id="error-2"></div><div class="actions"><button class="back" type="button" data-back>← Voltar</button><button class="button" id="finish" type="submit">Concluir Módulo 0</button></div></section>
 <section class="panel complete" data-panel="3"><div class="mark">✓</div><h2>Módulo 0 concluído.</h2><p>Suas respostas foram salvas. A equipe usará essas informações para organizar seu início no programa.</p><a class="button" href="dpp-area.html">Voltar para minha área</a></section>
 </form></div></main>
-<script src="dpp-language.js"></script>
+<script src="dpp-language.js?v=20261009b"></script>
 <script type="module">
 import {requireParticipant,getModuleState,saveModuleState} from './dpp-firebase.js';
 const session=await requireParticipant();if(!session)throw new Error('Authentication required');
