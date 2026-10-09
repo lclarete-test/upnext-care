@@ -82,6 +82,11 @@ function enrollmentData(user) {
     email_contato: contactEmail,
     telefone: document.getElementById('q-phone').value.trim(),
     zip_code: zipCode,
+    idioma_preferido: window.DPPLanguage?.language || 'pt',
+    forma_contato: document.getElementById('q-phone').value.trim() ? 'E-mail e WhatsApp' : 'E-mail',
+    formato_programa: 'Online',
+    disponibilidade: '',
+    necessidade_acessibilidade: '',
     exame_informado: document.querySelector('[name="q-lab"]:checked').value,
     tipo_exame: document.getElementById('q-lab-type').value,
     resultado_exame: document.getElementById('q-lab-result').value.trim(),
@@ -160,6 +165,7 @@ document.getElementById('register').addEventListener('click', async event => {
     const user = await createEmailAccount(email, password, name);
     const { profile, registration } = enrollmentData(user);
     await saveEnrollment(user, profile, lastScreen, registration);
+    await window.UpNextForms?.mirrorEnrollment(lastScreen, registration);
     await sendVerification(user);
     await logout();
     track('sign_up', { method: 'email' });
@@ -180,6 +186,7 @@ document.getElementById('register-google').addEventListener('click', async event
     const credential = await loginWithGoogle();
     const { profile, registration } = enrollmentData(credential.user);
     await saveEnrollment(credential.user, profile, lastScreen, registration);
+    await window.UpNextForms?.mirrorEnrollment(lastScreen, registration);
     track('sign_up', { method: 'google' });
     location.href = 'dpp-area.html';
   } catch (error) {
