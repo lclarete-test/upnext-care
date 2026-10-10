@@ -38,6 +38,7 @@
         form.reset();
         note.textContent = copy[1];
         window.gtag?.('event', 'newsletter_signup', {language: language()});
+        window.posthog?.capture('newsletter_submit', {language: language()});
       } catch (_) {
         note.textContent = copy[2];
       } finally {
