@@ -6,7 +6,7 @@ try {
  window.UpNextAccount={
   login:({email,password})=>loginWithEmail(email.trim(),password),
   google:()=>loginWithGoogle(),
-  signup:async({name,email,password})=>{const user=await createEmailAccount(email.trim(),password,name.trim());await sendEmailVerification(user,settings());await logout();},
+  signup:async({name,email,password})=>{const user=await createEmailAccount(email.trim(),password,name.trim());try{await sendEmailVerification(user,settings());}catch(error){error.message='Your account was created, but the confirmation email could not be sent. Use Send confirmation email to try again.';throw error;}await logout();},
   verify:()=>sendEmailVerification(auth.currentUser,settings()),
   reset:email=>sendPasswordResetEmail(auth,email.trim(),settings()),
   logout

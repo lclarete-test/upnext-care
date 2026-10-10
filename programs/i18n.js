@@ -2,7 +2,7 @@
 const COURSE_PT=window.COURSE;
 const LANGUAGE_KEY='upnext-healthy-routines-language';
 let language='en';
-try{const savedLanguage=localStorage.getItem(LANGUAGE_KEY);if(['en','es','pt'].includes(savedLanguage))language=savedLanguage;}catch{}
+
 try{const requestedLanguage=new URLSearchParams(location.search).get('lang');if(['en','es','pt'].includes(requestedLanguage))language=requestedLanguage;}catch{}
 const UI_ROWS=[
 ['Pular para o conteúdo','Skip to content','Saltar al contenido'],

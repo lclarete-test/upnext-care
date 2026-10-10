@@ -217,27 +217,27 @@
 </div>
 <div id="eligible-copy">
 <p>Parabéns, você qualifica para participação gratuita no programa.</p>
-<p class="intro">Agora deixe seus dados e escolha como quer criar o acesso.</p>
+<p class="intro">Agora deixe seus dados e escolha como quer criar o acesso.</p><p id="registration-method-note"></p>
 <div class="fields">
 <div class="field full">
 <label for="q-name">Nome completo</label>
-<input id="q-name" autocomplete="name">
+<input id="q-name" name="name" autocomplete="name">
 </div>
 <div class="field">
 <label for="q-email">E-mail</label>
-<input id="q-email" type="email" autocomplete="email">
+<input id="q-email" name="email" type="email" autocomplete="username">
 </div>
 <div class="field">
 <label for="q-phone">Telefone ou WhatsApp (opcional)</label>
-<input id="q-phone" type="tel" autocomplete="tel">
+<input id="q-phone" name="phone" type="tel" autocomplete="tel">
 </div>
 <div class="field">
 <label for="q-zip">ZIP Code</label>
-<input id="q-zip" inputmode="numeric" autocomplete="postal-code">
+<input id="q-zip" name="postal-code" inputmode="numeric" autocomplete="postal-code">
 </div>
 <div class="field">
 <label for="q-password">Crie uma senha</label>
-<input id="q-password" type="password" minlength="6" autocomplete="new-password" aria-describedby="q-password-hint">
+<input id="q-password" name="password" type="password" minlength="6" autocomplete="new-password" aria-describedby="q-password-hint">
 <button class="text-button" type="button" data-password-toggle="q-password">Mostrar senha</button><p id="q-password-hint">Use pelo menos 6 caracteres.</p>
 <small>Mínimo de 6 caracteres.</small>
 </div>
@@ -282,7 +282,7 @@
 </div>
 <div class="form-actions auth">
 <button class="text-button" type="button" data-back>← Voltar</button>
-<button class="button" type="button" id="register">Criar acesso com e-mail</button>
+<button class="button" type="submit" id="register">Criar acesso com e-mail</button>
 <button class="button google" type="button" id="register-google">Criar acesso com Google</button>
 </div>
 </div>
@@ -315,7 +315,7 @@
 <form id="login-form">
 <div class="field">
 <label for="login-email">E-mail</label>
-<input id="login-email" type="email" autocomplete="email">
+<input id="login-email" type="email" autocomplete="username">
 </div>
 <div class="field">
 <label for="login-password">Senha</label>
@@ -334,9 +334,7 @@
 </div>
 </section>
 </div>
-<div class="source">
-<strong>Fontes:</strong> <a href="https://stacks.cdc.gov/view/cdc/140473" target="_blank" rel="noopener">CDC, Prediabetes: Could It Be You?</a> · <a href="https://stacks.cdc.gov/view/cdc/135620" target="_blank" rel="noopener">CDC, National DPP</a> · <a href="https://www.niddk.nih.gov/-/media/Files/Health-Information/Health-Professionals/Diabetes/health-care-professionals/Guiding-Principles.pdf" target="_blank" rel="noopener">NIDDK, Guiding Principles</a>
-</div>
+
 </div>
 </section>
 <section class="newsletter" aria-labelledby="newsletter-title">
@@ -348,7 +346,7 @@
 </div>
 <div>
 <form class="newsletter-form" data-upnext-newsletter>
-<input type="email" name="email" autocomplete="email" placeholder="Seu endereço de e-mail" aria-label="Seu endereço de e-mail" required>
+<input type="email" name="email" autocomplete="username" placeholder="Seu endereço de e-mail" aria-label="Seu endereço de e-mail" required>
 <button type="submit">Quero receber</button>
 </form>
 <p class="newsletter-note" data-newsletter-note aria-live="polite">
@@ -369,18 +367,19 @@ const eligibilityHost=document.getElementById('participar');
 const eligibilityStaging=document.getElementById('eligibility-staging');
 if(eligibilityHost&&eligibilityStaging){
   const accessGrid=eligibilityStaging.querySelector('.access-grid');
-  const source=eligibilityStaging.querySelector('.source');
+
   if(accessGrid) eligibilityHost.appendChild(accessGrid);
-  if(source) eligibilityHost.appendChild(source);
+
   eligibilityStaging.remove();
 }
 </script>
+<script>if(!new URLSearchParams(location.search).has('lang')){const url=new URL(location.href);url.searchParams.set('lang','en');history.replaceState(null,'',url);}</script>
 <script src="dpp-language.js?v=20261010">
 </script>
 <script src="../upnext-forms.js?v=20261010">
 </script>
-<script type="module" src="dpp-participar.js?v=20261010-ux1">
+<script type="module" src="dpp-participar.js?v=20261010-flow1">
 </script>
-<script src="public-ux.js?v=20261010-ux1"></script>
+<script src="public-ux.js?v=20261010-flow1"></script><script src="../shared-public-nav.js?v=20261010-flow1"></script>
 </body>
 </html>

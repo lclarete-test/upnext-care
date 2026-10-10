@@ -108,22 +108,8 @@ function enrollmentData(user) {
   return { profile, registration };
 }
 
-function validateEnrollment(requirePassword = false) {
-  message('q-error-1', '');
-  const name = document.getElementById('q-name').value.trim();
-  const email = document.getElementById('q-email').value.trim().toLowerCase();
-  const zip = document.getElementById('q-zip').value.trim();
-  const password = document.getElementById('q-password').value;
-  if (!name || !email.includes('@') || !zip || !document.getElementById('q-consent').checked) {
-    message('q-error-1', 'Preencha nome, e-mail e ZIP Code e confirme a autorização.');
-    return false;
-  }
-  if (requirePassword && password.length < 6) {
-    message('q-error-1', 'Crie uma senha com pelo menos 6 caracteres.');
-    return false;
-  }
-  return true;
-}
+function registrationIssue(id,en,es,pt){const language=window.DPPLanguage?.language||'en';message('q-error-1',({en,es,pt})[language]);document.getElementById(id)?.focus();return false;}
+function validateEnrollment(requirePassword=false){message('q-error-1','');if(!document.getElementById('q-zip').value.trim())return registrationIssue('q-zip','Enter your ZIP Code.','Introduce tu código postal.','Informe seu ZIP Code.');if(!document.getElementById('q-consent').checked)return registrationIssue('q-consent','Confirm your authorization to register.','Confirma tu autorización para registrarte.','Confirme a autorização para se cadastrar.');if(!requirePassword)return true;if(!document.getElementById('q-name').value.trim())return registrationIssue('q-name','Enter your full name.','Introduce tu nombre completo.','Informe seu nome completo.');const email=document.getElementById('q-email');if(!email.value.trim()||!email.validity.valid)return registrationIssue('q-email','Enter a valid email address.','Introduce un correo válido.','Informe um e-mail válido.');if(document.getElementById('q-password').value.length<6)return registrationIssue('q-password','Create a password with at least 6 characters.','Crea una contraseña de al menos 6 caracteres.','Crie uma senha com pelo menos 6 caracteres.');return true;}
 
 document.getElementById('calculate').addEventListener('click', () => {
   message('q-error-0', '');
@@ -161,18 +147,19 @@ document.getElementById('calculate').addEventListener('click', () => {
 
 document.querySelectorAll('[data-back]').forEach(button => button.addEventListener('click', () => showStep(0)));
 
-document.getElementById('register').addEventListener('click', async event => {
+document.getElementById('qualification-form').addEventListener('submit', async event => {
+  event.preventDefault();if(current!==1){if(current===0)document.getElementById('calculate').click();return;}
   if (!validateEnrollment(true)) return;
-  const button = event.currentTarget;
+  const button = document.getElementById('register');
   setBusy(button, true, 'Criando acesso…');
   try {
     const name = document.getElementById('q-name').value.trim();
     const email = document.getElementById('q-email').value.trim().toLowerCase();
     const password = document.getElementById('q-password').value;
-    const user = await createEmailAccount(email, password, name);
+    let user;try{user=await createEmailAccount(email,password,name);}catch(error){if(error.code!=='auth/email-already-in-use')throw error;user=(await loginWithEmail(email,password)).user;}
     const { profile, registration } = enrollmentData(user);
     await saveEnrollment(user, profile, lastScreen, registration);
-    await window.UpNextForms?.mirrorEnrollment(lastScreen, registration);
+    try{await window.UpNextForms?.mirrorEnrollment(lastScreen,registration);}catch{}
     await sendVerification(user);
     await logout();
     track('sign_up', { method: 'email' });
@@ -191,9 +178,11 @@ document.getElementById('register-google').addEventListener('click', async event
   setBusy(button, true, 'Abrindo o Google…');
   try {
     const credential = await loginWithGoogle();
+    if(!document.getElementById('q-name').value.trim())document.getElementById('q-name').value=credential.user.displayName||'';
+    if(!document.getElementById('q-email').value.trim())document.getElementById('q-email').value=credential.user.email||'';
     const { profile, registration } = enrollmentData(credential.user);
     await saveEnrollment(credential.user, profile, lastScreen, registration);
-    await window.UpNextForms?.mirrorEnrollment(lastScreen, registration);
+    try{await window.UpNextForms?.mirrorEnrollment(lastScreen,registration);}catch{}
     track('sign_up', { method: 'google' });
     location.href = 'dpp-area.html';
   } catch (error) {

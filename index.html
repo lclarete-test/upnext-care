@@ -38,7 +38,7 @@
 <nav class="nav" aria-label="Main navigation">
 <a href="#approach">Our approach</a>
 <a class="programs-link" href="#programs">Programs</a>
-<a href="programs/#login">Sign in</a>
+
 <a class="primary-link" href="#dpp"><span>Diabetes</span><span>Prevention</span></a>
 </nav><label class="public-language">Language <select id="public-language"><option value="en">English</option><option value="es">Español</option><option value="pt">Português</option></select></label>
 </div>
@@ -85,8 +85,8 @@
 </section>
     <section class="section build" id="programs">
 <div class="wrap"><div class="program-heading"><div class="eyebrow">Programs</div><h2>Choose your next step.</h2><p>Short lessons at your own pace or a structured program with a Lifestyle Coach.</p></div>
-<div class="landing-programs"><article class="landing-program"><div class="eyebrow">At your own pace</div><h3>Healthy Routines</h3><p>Small lessons for everyday habits. Explore sleep, eating, movement, stress and ways to keep going.</p><p class="program-facts">6 modules · 30 lessons · About 2 minutes each</p><details><summary>Explore the six modules</summary><ol><li>Building Habits</li><li>Sleep habits</li><li>Everyday eating</li><li>Movement in your routine</li><li>Stress and support</li><li>Maintaining habits</li></ol></details><a class="button" href="programs/#login">Start learning</a></article>
-<article class="landing-program"><div class="eyebrow">Lifestyle Coach support</div><h3>Diabetes Prevention Program</h3><p>A structured journey with a Lifestyle Coach to support changes in eating, physical activity and daily routines.</p><p class="program-facts">12 months · 26 sequential modules</p><a class="button secondary" href="#dpp">Explore the DPP</a></article></div></div>
+<div class="landing-programs"><article class="landing-program"><div class="eyebrow">At your own pace</div><h3>Healthy Routines</h3><p>Small lessons for everyday habits. Explore sleep, eating, movement, stress and ways to keep going.</p><p class="program-facts">6 modules · 30 lessons · About 2 minutes each</p><details><summary>Explore the six modules</summary><ol><li>Building Habits</li><li>Sleep habits</li><li>Everyday eating</li><li>Movement in your routine</li><li>Stress and support</li><li>Maintaining habits</li></ol></details><a class="button" href="healthy-routines/">Start learning</a></article>
+<article class="landing-program"><div class="eyebrow">Lifestyle Coach support</div><h3>Diabetes Prevention Program</h3><p>A structured journey with a Lifestyle Coach to support changes in eating, physical activity and daily routines.</p><p class="program-facts">12 months · 26 sequential modules</p><a class="button secondary" href="dpp/?lang=en">Explore the DPP</a></article></div></div>
 </section>
     <section class="section" id="dpp">
 <div class="wrap dpp-shell">
@@ -170,6 +170,6 @@
 <script src="upnext-forms.js?v=20261010">
 </script>
   <script>document.querySelectorAll('a[href^="dpp/"]').forEach(link=>link.addEventListener('click',()=>window.gtag?.('event','select_content',{content_type:'program',item_id:'dpp',language:new URL(link.href).searchParams.get('lang')})));</script>
-<script src="public-ux.js?v=20261010-landing3"></script>
+<script src="shared-public-nav.js?v=20261010-flow1"></script><script src="public-ux.js?v=20261010-flow1"></script>
 </body>
 </html>
