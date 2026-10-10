@@ -21,7 +21,8 @@
     @media(max-width:860px){.hero{padding:72px 0}.hero-grid,.story,.build-shell,.dpp-shell{grid-template-columns:1fr;gap:46px}.signal{min-height:350px;max-width:450px;width:100%;margin:auto}.closing-box{align-items:flex-start;flex-direction:column}.nav a:not(.primary-link){display:none}}
     @media(max-width:560px){.wrap{width:calc(100% - 30px)}h1{font-size:48px;letter-spacing:-2.6px}.lead{font-size:18px}.signal{min-height:300px}.signal-ring.one{inset:12px 8px 50px}.signal-ring.two{inset:54px 50px 92px}.signal-ring.three{inset:103px 100px 142px}.signal-label{font-size:10px}.section{padding:64px 0}.principles{grid-template-columns:1fr}.principle,.principle:nth-child(2n),.principle:nth-last-child(-n+2){border-right:0;border-bottom:1px solid var(--line)}.principle:last-child{border-bottom:0}.closing-box{padding:34px 28px}footer .wrap{flex-direction:column}}
   @media(max-width:860px){.nav a.programs-link{display:block}.nav{gap:14px}}
-  </style>
+  .topbar .wrap{flex-wrap:wrap;padding-top:10px;padding-bottom:10px}.nav{flex-wrap:wrap}.nav a{min-height:44px;display:inline-flex;align-items:center}.public-language{font-size:13px}.public-language select{font:inherit;padding:10px;border:1px solid #bacac6;border-radius:8px;background:#fff}a:focus-visible,button:focus-visible,select:focus-visible{outline:3px solid #087261;outline-offset:4px}@media(max-width:860px){.nav a:not(.primary-link){display:inline-flex}.nav{order:3;width:100%;gap:18px}}
+</style>
   <link rel="stylesheet" href="upnext-common.css?v=20261010">
 </head>
 <body>
@@ -33,9 +34,9 @@
 <nav class="nav" aria-label="Main navigation">
 <a href="#approach">Our approach</a>
 <a class="programs-link" href="programs/">Programs</a>
-<a href="programs/#learning">My Learning</a>
+<a href="programs/#login">Sign in</a>
 <a class="primary-link" href="#dpp"><span>Diabetes</span><span>Prevention</span></a>
-</nav>
+</nav><label class="public-language">Language <select id="public-language"><option value="en">English</option><option value="es">Español</option><option value="pt">Português</option></select></label>
 </div>
 </header>
   <main>
@@ -187,5 +188,6 @@
 <script src="upnext-forms.js?v=20261010">
 </script>
   <script>document.querySelectorAll('a[href^="dpp/"]').forEach(link=>link.addEventListener('click',()=>window.gtag?.('event','select_content',{content_type:'program',item_id:'dpp',language:new URL(link.href).searchParams.get('lang')})));</script>
+<script src="public-ux.js"></script>
 </body>
 </html>

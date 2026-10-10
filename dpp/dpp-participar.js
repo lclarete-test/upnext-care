@@ -23,6 +23,7 @@ const loginPanel = document.getElementById('login-panel');
 
 function showAccessMode(mode, emphasize = false) {
   const login = mode === 'login';
+  document.querySelector('.access-head').hidden=login;
   eligibilityPanel.hidden = login;
   loginPanel.hidden = !login;
   if (login && emphasize) {
