@@ -22,6 +22,10 @@
     @media(max-width:560px){.wrap{width:calc(100% - 30px)}h1{font-size:48px;letter-spacing:-2.6px}.lead{font-size:18px}.signal{min-height:300px}.signal-ring.one{inset:12px 8px 50px}.signal-ring.two{inset:54px 50px 92px}.signal-ring.three{inset:103px 100px 142px}.signal-label{font-size:10px}.section{padding:64px 0}.principles{grid-template-columns:1fr}.principle,.principle:nth-child(2n),.principle:nth-last-child(-n+2){border-right:0;border-bottom:1px solid var(--line)}.principle:last-child{border-bottom:0}.closing-box{padding:34px 28px}footer .wrap{flex-direction:column}}
   @media(max-width:860px){.nav a.programs-link{display:block}.nav{gap:14px}}
   .topbar .wrap{flex-wrap:wrap;padding-top:10px;padding-bottom:10px}.nav{flex-wrap:wrap}.nav a{min-height:44px;display:inline-flex;align-items:center}.public-language{font-size:13px}.public-language select{font:inherit;padding:10px;border:1px solid #bacac6;border-radius:8px;background:#fff}a:focus-visible,button:focus-visible,select:focus-visible{outline:3px solid #087261;outline-offset:4px}@media(max-width:860px){.nav a:not(.primary-link){display:inline-flex}.nav{order:3;width:100%;gap:18px}}
+
+/* One continuous landing page; navigation stays beside the language control. */
+.topbar .wrap{display:flex;flex-wrap:nowrap;gap:24px;min-height:76px}.topbar .brand{flex:none}.topbar .nav{margin-left:auto;width:auto;order:initial;gap:22px;flex-wrap:nowrap}.public-language{flex:none;white-space:nowrap}.nav .primary-link{min-width:0;padding:10px 15px;display:inline-flex;gap:4px;line-height:1.2}.section[id]{scroll-margin-top:100px}.program-heading{max-width:760px;margin-bottom:30px}.program-heading p{color:var(--muted);font-size:18px}.landing-programs{display:grid;grid-template-columns:1fr 1fr;gap:24px}.landing-program{padding:32px;border:1px solid var(--line);border-radius:16px;background:#fff}.landing-program h3{margin:12px 0;font-size:30px;line-height:1.15}.landing-program p{color:var(--muted)}.landing-program .program-facts{font-size:14px}.landing-program details{margin:22px 0;color:var(--ink)}.landing-program summary{cursor:pointer;font-weight:700}.landing-program li{padding:4px 0}.landing-program .button{margin-top:14px}
+@media(max-width:760px){.topbar .wrap{display:grid;grid-template-columns:1fr auto;gap:4px 14px;padding:10px 0}.topbar .nav{grid-column:1/-1;order:initial;justify-content:flex-start;width:100%;margin:0;gap:18px;overflow-x:auto}.nav a{white-space:nowrap;flex:none}.nav .primary-link{background:transparent;color:var(--ink);padding:0}.landing-programs{grid-template-columns:1fr}.landing-program{padding:24px}.public-language{font-size:0}.public-language select{font-size:13px}.section[id]{scroll-margin-top:130px}}
 </style>
   <link rel="stylesheet" href="upnext-common.css?v=20261010">
 </head>
@@ -33,7 +37,7 @@
 </a>
 <nav class="nav" aria-label="Main navigation">
 <a href="#approach">Our approach</a>
-<a class="programs-link" href="programs/">Programs</a>
+<a class="programs-link" href="#programs">Programs</a>
 <a href="programs/#login">Sign in</a>
 <a class="primary-link" href="#dpp"><span>Diabetes</span><span>Prevention</span></a>
 </nav><label class="public-language">Language <select id="public-language"><option value="en">English</option><option value="es">Español</option><option value="pt">Português</option></select></label>
@@ -47,7 +51,7 @@
 <h1>Behavior change needs more than good intentions.</h1>
 <p class="lead">UpNext develops health programs that combine practical education, continuous support, and meaningful data to turn everyday actions into lasting progress.</p>
 <div class="actions">
-<a class="button" href="programs/">See our programs</a>
+<a class="button" href="#programs">See our programs</a>
 <a class="button secondary" href="#approach">Our approach</a>
 </div>
 </div>
@@ -79,32 +83,10 @@
 </div>
 </div>
 </section>
-    <section class="section build" id="what-we-build">
-<div class="wrap build-shell">
-<div class="build-copy">
-<div class="eyebrow">Programs</div>
-<h2>Health programs people can understand, use, and continue.</h2>
-<p>We connect evidence-based content with interactive learning, progress tracking, and behavioral data. The result is a clearer experience for participants and a stronger view of engagement for the teams supporting them.</p>
-</div>
-<div class="principles" aria-label="UpNext program principles">
-<div class="principle">
-<strong>Practical education</strong>
-<span>Content translated into clear, actionable steps.</span>
-</div>
-<div class="principle">
-<strong>Continuous support</strong>
-<span>Journeys that reinforce progress between key moments.</span>
-</div>
-<div class="principle">
-<strong>Behavioral insight</strong>
-<span>Signals that help identify engagement and friction.</span>
-</div>
-<div class="principle">
-<strong>Measurable progress</strong>
-<span>Data organized around meaningful health actions.</span>
-</div>
-</div>
-</div>
+    <section class="section build" id="programs">
+<div class="wrap"><div class="program-heading"><div class="eyebrow">Programs</div><h2>Choose your next step.</h2><p>Short lessons at your own pace or a structured program with a Lifestyle Coach.</p></div>
+<div class="landing-programs"><article class="landing-program"><div class="eyebrow">At your own pace</div><h3>Healthy Routines</h3><p>Small lessons for everyday habits. Explore sleep, eating, movement, stress and ways to keep going.</p><p class="program-facts">6 modules · 30 lessons · About 2 minutes each</p><details><summary>Explore the six modules</summary><ol><li>Building Habits</li><li>Sleep habits</li><li>Everyday eating</li><li>Movement in your routine</li><li>Stress and support</li><li>Maintaining habits</li></ol></details><a class="button" href="programs/#login">Start learning</a></article>
+<article class="landing-program"><div class="eyebrow">Lifestyle Coach support</div><h3>Diabetes Prevention Program</h3><p>A structured journey with a Lifestyle Coach to support changes in eating, physical activity and daily routines.</p><p class="program-facts">12 months · 26 sequential modules</p><a class="button secondary" href="#dpp">Explore the DPP</a></article></div></div>
 </section>
     <section class="section" id="dpp">
 <div class="wrap dpp-shell">
@@ -188,6 +170,6 @@
 <script src="upnext-forms.js?v=20261010">
 </script>
   <script>document.querySelectorAll('a[href^="dpp/"]').forEach(link=>link.addEventListener('click',()=>window.gtag?.('event','select_content',{content_type:'program',item_id:'dpp',language:new URL(link.href).searchParams.get('lang')})));</script>
-<script src="public-ux.js?v=20261010-ux1"></script>
+<script src="public-ux.js?v=20261010-landing2"></script>
 </body>
 </html>
