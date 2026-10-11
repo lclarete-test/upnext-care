@@ -5,4 +5,4 @@ Disallow: /dpp/dpp-modulo.html
 Disallow: /dpp/dpp-modulo-0.html
 Disallow: /dpp/dpp-modulo-1.html
 
-Sitemap: https://upnextcare.com/sitemap.xml
+Sitemap: https://upnextcare.com/sitemap-google.xml
