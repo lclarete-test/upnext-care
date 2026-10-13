@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-13T13:51:38.902Z",
+  "updated_at": "2026-10-13T13:52:16.291Z",
   "timezone": "America/New_York",
   "window": "Last 30 days plus today",
   "source": "PostHog aggregate endpoints",
@@ -687,7 +687,7 @@
   ],
   "session_replay": {
     "enabled_at": "2026-10-13T13:48:06Z",
-    "sample_rate": 0.1,
+    "sample_rate": 1,
     "minimum_duration_seconds": 5,
     "retention_days": 30,
     "inputs_masked": true,
