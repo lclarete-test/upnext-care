@@ -21,7 +21,7 @@ function startSitePosthog() {
         capture_pageleave: true,
         disable_session_recording: true,
         before_send: function(event) {
-            if (event) cleanAnalyticsURLs(event.properties);
+            if (event) { cleanAnalyticsURLs(event.properties);event.properties=event.properties||{};event.properties.site_name='upnext';try{event.properties.traffic_type=window.localStorage.getItem('upnext-analytics-internal')==='1'?'internal':'external';}catch(_){event.properties.traffic_type='external';} }
             return event;
         }
     });
@@ -37,3 +37,43 @@ document.addEventListener('click', function(event) {
         window.posthog.capture('program_link_click', {destination: url.pathname});
     }
 });
+
+
+// Product events only. No names, emails, survey/quiz answers, or health records.
+(function () {
+  'use strict';
+  const safeGet = (kind, key) => { try { return window[kind].getItem(key); } catch (_) { return null; } };
+  const safeSet = (kind, key, value) => { try { window[kind].setItem(key, value); } catch (_) {} };
+  const allowed = new Set(['program_id','lesson_id','auth_method','route','first_completion']);
+  let identified = null;
+  function track(name, properties = {}) {
+    try {
+      if (!window.posthog || typeof window.posthog.capture !== 'function') return;
+      const clean = {site_name:'upnext',analytics_version:'20261013',traffic_type:safeGet('localStorage','upnext-analytics-internal')==='1'?'internal':'external'};
+      for (const key of Object.keys(properties)) if (allowed.has(key) && ['string','number','boolean'].includes(typeof properties[key])) clean[key]=properties[key];
+      window.posthog.capture(name,clean);
+    } catch (_) { /* Analytics must not interrupt login or learning. */ }
+  }
+  function identify(uid) {
+    try { if (uid && uid!==identified && window.posthog?.identify) { window.posthog.identify('upnext:'+uid);identified=uid; } } catch (_) {}
+  }
+  function authenticated(uid) {
+    identify(uid);
+    const key='upnext-analytics-session:'+uid,now=Date.now(),last=Number(safeGet('localStorage',key)||0);
+    if (!last || now-last>30*60*1000) track('learning_session_started',{program_id:'healthy_routines'});
+    safeSet('localStorage',key,String(now));
+  }
+  function logout() { try { if(identified){window.posthog?.reset?.();identified=null;} } catch (_) {} }
+  const once = new Set();
+  function programViewed() {
+    const path=location.pathname,route=location.hash.slice(1);if(route==='signup'&&!window.__upnextSignupViewed){window.__upnextSignupViewed=true;track('signup_opened',{program_id:'healthy_routines'});}
+    if (path.startsWith('/healthy-routines') || (path.startsWith('/programs')&&['course','learning'].includes(route))) {
+      const key=path+'#'+route;
+      if (!once.has(key)) { once.add(key);track('program_viewed',{program_id:'healthy_routines',route:route||'landing'}); }
+    }
+  }
+  window.UpNextAnalytics = {track,identify,authenticated,logout};
+  document.addEventListener('DOMContentLoaded',programViewed);
+  window.addEventListener('hashchange',programViewed);
+  if (document.readyState!=='loading') programViewed();
+})();
