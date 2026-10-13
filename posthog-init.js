@@ -19,13 +19,19 @@ function startSitePosthog() {
         autocapture: false,
         capture_pageview: true,
         capture_pageleave: true,
-        disable_session_recording: true,
+        disable_session_recording: false,
+        session_recording: { maskAllInputs: true },
         before_send: function(event) {
             if (event) { cleanAnalyticsURLs(event.properties);event.properties=event.properties||{};event.properties.site_name='upnext';try{event.properties.traffic_type=window.localStorage.getItem('upnext-analytics-internal')==='1'?'internal':'external';}catch(_){event.properties.traffic_type='external';} }
             return event;
         }
     });
 }
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('input, textarea, select').forEach(function (element) {
+        element.classList.add('ph-no-capture');
+    });
+});
 startSitePosthog();
 document.addEventListener('click', function(event) {
     const link = event.target.closest && event.target.closest('a[href]');
