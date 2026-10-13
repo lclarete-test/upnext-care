@@ -81,7 +81,7 @@ const snapshot = {
   devices,
   session_replay: {
     enabled_at: "2026-10-13T13:48:06Z",
-    sample_rate: 0.1,
+    sample_rate: 1,
     minimum_duration_seconds: 5,
     retention_days: 30,
     inputs_masked: true,
