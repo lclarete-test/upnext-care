@@ -1,0 +1,42 @@
+name: Update UpNext analytics snapshot
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/update-upnext-analytics.yml"
+      - "scripts/update-upnext-analytics.mjs"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: upnext-analytics-snapshot
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Fetch aggregate PostHog metrics
+        env:
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_UPNEXT }}
+        run: node scripts/update-upnext-analytics.mjs
+      - name: Publish changed snapshot
+        run: |
+          if git diff --quiet -- analytics/live.json; then
+            echo "Analytics snapshot is unchanged."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add analytics/live.json
+          git commit -m "Update UpNext analytics snapshot"
+          git push

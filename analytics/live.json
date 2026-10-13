@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-10-13T13:36:52.375Z",
+  "timezone": "America/New_York",
+  "window": "Last 30 days plus today",
+  "source": "PostHog aggregate endpoint",
+  "privacy": "Aggregate counts only; no person-level fields.",
+  "totals": {
+    "pageviews": 24,
+    "daily_visitors": 22,
+    "article_clicks": 1,
+    "program_views": 0,
+    "signup_opens": 0,
+    "accounts_created": 0,
+    "logins": 0,
+    "learning_sessions": 0,
+    "lessons_started": 0,
+    "lessons_completed": 0
+  },
+  "daily": []
+}
