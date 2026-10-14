@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-14T22:51:54.110Z",
+  "updated_at": "2026-10-14T23:14:44.397Z",
   "timezone": "America/New_York",
   "window": "Last 30 days plus today",
   "source": "PostHog aggregate endpoints",
