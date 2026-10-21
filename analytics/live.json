@@ -1,20 +1,20 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-21T18:54:43.436Z",
+  "updated_at": "2026-10-21T22:02:08.763Z",
   "timezone": "America/New_York",
   "window": "Last 30 days plus today",
   "source": "PostHog aggregate endpoints",
   "privacy": "Aggregate counts only; no person-level fields.",
   "refresh_minutes": 15,
   "totals": {
-    "pageviews": 123,
-    "daily_visitors": 65,
+    "pageviews": 139,
+    "daily_visitors": 62,
     "article_clicks": 4,
-    "program_views": 3,
-    "signup_opens": 2,
+    "program_views": 10,
+    "signup_opens": 4,
     "accounts_created": 0,
     "logins": 0,
-    "learning_sessions": 0,
+    "learning_sessions": 1,
     "lessons_started": 0,
     "lessons_completed": 0
   },
@@ -321,7 +321,7 @@
     {
       "date": "2026-10-14",
       "pageviews": 18,
-      "daily_visitors": 11,
+      "daily_visitors": 10,
       "article_clicks": 0,
       "program_views": 0,
       "signup_opens": 0,
@@ -386,7 +386,7 @@
     {
       "date": "2026-10-19",
       "pageviews": 20,
-      "daily_visitors": 8,
+      "daily_visitors": 7,
       "article_clicks": 0,
       "program_views": 0,
       "signup_opens": 0,
@@ -399,7 +399,7 @@
     {
       "date": "2026-10-20",
       "pageviews": 24,
-      "daily_visitors": 6,
+      "daily_visitors": 5,
       "article_clicks": 3,
       "program_views": 0,
       "signup_opens": 0,
@@ -411,14 +411,14 @@
     },
     {
       "date": "2026-10-21",
-      "pageviews": 16,
+      "pageviews": 32,
       "daily_visitors": 2,
       "article_clicks": 0,
-      "program_views": 3,
-      "signup_opens": 2,
+      "program_views": 10,
+      "signup_opens": 4,
       "accounts_created": 0,
       "logins": 0,
-      "learning_sessions": 0,
+      "learning_sessions": 1,
       "lessons_started": 0,
       "lessons_completed": 0
     }
@@ -426,7 +426,7 @@
   "devices": [
     {
       "device": "Desktop",
-      "pageviews": 98,
+      "pageviews": 114,
       "daily": [
         {
           "date": "2026-09-21",
@@ -550,7 +550,7 @@
         },
         {
           "date": "2026-10-21",
-          "pageviews": 16
+          "pageviews": 32
         }
       ]
     },
