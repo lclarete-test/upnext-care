@@ -1,0 +1,69 @@
+name: Cloudflare UpNext protection
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Audit configuration or enable Bot Fight Mode
+        type: choice
+        options: [audit, enable-bot-fight-mode]
+        default: audit
+permissions: {}
+concurrency:
+  group: cloudflare-upnext
+  cancel-in-progress: false
+jobs:
+  cloudflare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      TASK_ACTION: ${{ inputs.action }}
+    steps:
+      - name: Check zone and protection
+        shell: python
+        run: |
+          import json, os, sys, urllib.request, urllib.error
+          token = os.environ.get("CLOUDFLARE_API_TOKEN", "")
+          if not token:
+              sys.exit("Missing repository secret CLOUDFLARE_API_TOKEN.")
+          def api(path, method="GET", body=None):
+              req = urllib.request.Request(
+                  "https://api.cloudflare.com/client/v4/" + path,
+                  data=None if body is None else json.dumps(body).encode(),
+                  headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"},
+                  method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as response:
+                      payload = json.load(response)
+              except urllib.error.HTTPError as error:
+                  sys.exit("Cloudflare rejected request: HTTP " + str(error.code) + ". Check token permissions and plan.")
+              if not payload.get("success"):
+                  sys.exit("Cloudflare API request failed; check token scope and account configuration.")
+              return payload["result"]
+          zones = api("zones?name=upnextcare.com")
+          if len(zones) != 1:
+              sys.exit("upnextcare.com not found in token scope. Add it to the intended Cloudflare account first.")
+          zone = zones[0]
+          zone_id = zone["id"]
+          records = api("zones/" + zone_id + "/dns_records?per_page=100")
+          web = [r for r in records if r["name"] in ("upnextcare.com", "www.upnextcare.com") and r["type"] in ("A", "AAAA", "CNAME")]
+          config = api("zones/" + zone_id + "/bot_management")
+          lines = ["# UpNext Cloudflare check", "", "Zone status: " + zone["status"],
+                   "Assigned nameservers: " + ", ".join(zone.get("name_servers", [])), "",
+                   "| Website record | Type | Proxied |", "|---|---|---|"]
+          for record in web:
+              lines.append("| " + record["name"] + " | " + record["type"] + " | " + str(record.get("proxied", False)) + " |")
+          if os.environ["TASK_ACTION"] == "enable-bot-fight-mode":
+              if zone["status"] != "active" or not web or not all(r.get("proxied") for r in web):
+                  sys.exit("Protection not changed: zone must be active and website records proxied. Review DNS and HTTPS first.")
+              if zone.get("plan", {}).get("name", "").lower() not in ("free", "free website"):
+                  sys.exit("Protection not changed: this workflow is scoped to the Free plan.")
+              config = api("zones/" + zone_id + "/bot_management", "PUT", {"fight_mode": True})
+              config = api("zones/" + zone_id + "/bot_management")
+              if config.get("fight_mode") is not True:
+                  sys.exit("Cloudflare did not confirm Bot Fight Mode enabled.")
+          lines.extend(["", "Bot Fight Mode: " + str(config.get("fight_mode", "not reported")),
+                        "", "This workflow does not change DNS, nameservers, SSL, billing, or AI crawler policies."])
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as report:
+              report.write("\n".join(lines) + "\n")
+          print("Cloudflare check complete. See the run summary.")
