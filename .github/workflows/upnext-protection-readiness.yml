@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     env:
+      GD_TOKEN: ${{ secrets.GODADDY_API_TOKEN_UPNEXT }}
       CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     steps:
       - shell: python
@@ -29,3 +30,13 @@ jobs:
           bots=get("zones/"+zid+"/bot_management")
           if bots: print("Bot Fight Mode:",bots.get("fight_mode"))
 
+
+          if z.get("plan",{}).get("name","").lower() not in ("free","free website"): raise SystemExit("Free plan required.")
+          if not bots.get("fight_mode"):
+              req=urllib.request.Request("https://api.cloudflare.com/client/v4/zones/"+zid+"/bot_management",data=json.dumps({"fight_mode":True}).encode(),headers={"Authorization":"Bearer "+os.environ["CF_TOKEN"],"Content-Type":"application/json"},method="PUT")
+              with urllib.request.urlopen(req,timeout=20) as response:
+                  if not json.load(response).get("success"): raise SystemExit("Bot protection rejected.")
+          print("Bot Fight Mode verified:",get("zones/"+zid+"/bot_management").get("fight_mode"))
+          req=urllib.request.Request("https://api.godaddy.com/v3/domains/operations/f5eed732-0480-422c-8f16-a3e83bd5aa9c",headers={"Authorization":"Bearer "+os.environ["GD_TOKEN"]})
+          with urllib.request.urlopen(req,timeout=20) as response:
+              op=json.load(response); print("GoDaddy nameserver operation:",op.get("status"))
