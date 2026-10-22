@@ -1,0 +1,40 @@
+name: UpNext GoDaddy DNS preflight
+on:
+  push:
+    paths: [.github/workflows/upnext-dns-preflight.yml]
+  workflow_dispatch:
+permissions: {}
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      GD_TOKEN: ${{ secrets.GODADDY_API_TOKEN_UPNEXT }}
+      CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - name: Verify API access without exposing DNS values
+        shell: python
+        run: |
+          import os,json,urllib.request,urllib.error,sys
+          def get(url,token):
+              if not token: sys.exit("Required repository secret missing.")
+              req=urllib.request.Request(url,headers={"Authorization":"Bearer "+token,"Accept":"application/json"})
+              try:
+                  with urllib.request.urlopen(req,timeout=30) as r: return json.load(r)
+              except urllib.error.HTTPError as e: sys.exit("API access rejected: HTTP "+str(e.code))
+          records=[]
+          for page in range(1,101):
+              result=get("https://api.godaddy.com/v3/domains/zones/upnextcare.com/dns-records?pageSize=100&page="+str(page),os.environ["GD_TOKEN"])
+              items=result.get("items",[])
+              if not isinstance(items,list): sys.exit("Unexpected DNS response.")
+              records+=items
+              if len(items)<100: break
+          else: sys.exit("Pagination limit reached.")
+          print("GoDaddy access verified. DNS record count:",len(records))
+          for kind in sorted({r["type"] for r in records}): print(kind,sum(r["type"]==kind for r in records))
+          zones=get("https://api.cloudflare.com/client/v4/zones?name=upnextcare.com",os.environ["CF_TOKEN"])
+          if not zones.get("success") or len(zones.get("result",[]))!=1: sys.exit("Cloudflare zone not uniquely accessible.")
+          z=zones["result"][0]
+          print("Cloudflare zone status:",z["status"])
+          print("Assigned nameservers:",", ".join(z["name_servers"]))
+          print("Read-only preflight complete. No DNS, billing, or registrar settings changed.")
