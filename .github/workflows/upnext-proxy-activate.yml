@@ -1,0 +1,57 @@
+name: Activate UpNext free proxy protection
+on:
+  push:
+    paths: [.github/workflows/upnext-proxy-activate.yml]
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: cloudflare-upnext
+  cancel-in-progress: false
+jobs:
+  activate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - name: Verify TLS then enable website proxy and free bot protection
+        shell: python
+        run: |
+          import json,os,sys,urllib.request,urllib.error
+          def cf(path,method="GET",body=None):
+              q=urllib.request.Request("https://api.cloudflare.com/client/v4/"+path,data=None if body is None else json.dumps(body).encode(),headers={"Authorization":"Bearer "+os.environ["CF_TOKEN"],"Content-Type":"application/json"},method=method)
+              try:
+                  with urllib.request.urlopen(q,timeout=30) as r: result=json.load(r)
+              except urllib.error.HTTPError as e:
+                  err=json.load(e)
+                  print("Cloudflare HTTP",e.code,"errors:",[(x.get("code"),x.get("message")) for x in err.get("errors",[])])
+                  raise SystemExit("Cloudflare rejected configuration.")
+              if not result.get("success"): raise SystemExit("Cloudflare operation unsuccessful.")
+              return result["result"]
+          zs=cf("zones?name=upnextcare.com")
+          if len(zs)!=1: sys.exit("One UpNext zone required.")
+          z=zs[0]; zid=z["id"]
+          if z["status"]!="active" or z.get("plan",{}).get("name","").lower() not in ("free","free website"): sys.exit("Active Free zone required.")
+          packs=cf("zones/"+zid+"/ssl/certificate_packs?status=all")
+          hosts=set()
+          for p in packs:
+              if p.get("status")=="active": hosts.update(p.get("hosts",[]))
+          if "upnextcare.com" not in hosts or not ({"www.upnextcare.com","*.upnextcare.com"} & hosts): sys.exit("Universal certificate not active for both website hostnames. Proxy unchanged.")
+          ssl=cf("zones/"+zid+"/settings/ssl")
+          if ssl.get("value")!="strict":
+              cf("zones/"+zid+"/settings/ssl","PATCH",{"value":"strict"})
+          if cf("zones/"+zid+"/settings/ssl").get("value")!="strict": sys.exit("Full strict HTTPS required.")
+          records=cf("zones/"+zid+"/dns_records?per_page=500")
+          web=[r for r in records if r["name"] in ("upnextcare.com","www.upnextcare.com") and r["type"] in ("A","AAAA","CNAME")]
+          if not web: sys.exit("No website records found.")
+          for r in web:
+              if not r.get("proxied"): cf("zones/"+zid+"/dns_records/"+r["id"],"PATCH",{"proxied":True,"ttl":1})
+          after=cf("zones/"+zid+"/dns_records?per_page=500")
+          proxied=[r for r in after if r["name"] in ("upnextcare.com","www.upnextcare.com") and r["type"] in ("A","AAAA","CNAME")]
+          if not all(r.get("proxied") for r in proxied): sys.exit("Proxy not fully enabled.")
+          print("Website proxy enabled and verified:",len(proxied),"records.")
+          print("HTTPS mode: Full (strict). Active certificate covers root and www.")
+          bots=cf("zones/"+zid+"/bot_management")
+          if not bots.get("fight_mode"): cf("zones/"+zid+"/bot_management","PUT",{"fight_mode":True})
+          print("Bot Fight Mode:",cf("zones/"+zid+"/bot_management").get("fight_mode"))
+          print("No email records, billing, AI crawler policies, or registration settings changed.")
