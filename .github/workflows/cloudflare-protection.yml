@@ -72,6 +72,9 @@ jobs:
               config = api("zones/" + zone_id + "/bot_management")
               if config.get("fight_mode") is not True:
                   sys.exit("Cloudflare did not confirm Bot Fight Mode enabled.")
+          lines.extend(["", "DNS inventory (counts only):"])
+          for kind in ("A", "AAAA", "CNAME", "MX", "TXT", "SRV", "CAA"):
+              lines.append(kind + ": " + str(sum(r["type"] == kind for r in records)))
           lines.extend(["", "Bot Fight Mode: " + str(config.get("fight_mode", "not reported")),
                         "", "This workflow does not change DNS, nameservers, SSL, billing, or AI crawler policies."])
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as report:
