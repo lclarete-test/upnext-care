@@ -1,5 +1,7 @@
 name: Activate UpNext Cloudflare nameservers
 on:
+  push:
+    paths: [.github/workflows/upnext-dns-cutover.yml]
   workflow_dispatch:
 permissions: {}
 concurrency:
@@ -78,7 +80,7 @@ jobs:
           if {key(r) for r in after}!=wanted: sys.exit("DNS comparison failed; nameservers unchanged.")
           print("Verified DNS copy:",len(desired),"records. Website and email records preserved.")
           print("All website records remain DNS-only until HTTPS and cutover checks.")
-          print("Nameservers unchanged. No billing changes.")
+          print("DNS comparison complete. No billing changes.")
 
           ds=api("https://dns.google/","resolve?name="+domain+"&type=DS","")
           if ds.get("Status")!=0 or any(x.get("type")==43 for x in ds.get("Answer",[])): sys.exit("DNSSEC status requires review; nameservers unchanged.")
