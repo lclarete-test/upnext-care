@@ -1,6 +1,6 @@
 # UpNext Care Cloudflare status
 
-Verified 2026-10-22 UTC.
+Verified 2026-10-22 at 02:18 UTC.
 
 - Domain: upnextcare.com.
 - Registration remains at GoDaddy; hosting remains on GitHub Pages.
@@ -11,5 +11,5 @@ Verified 2026-10-22 UTC.
 - HTTPS uses Full (strict), with an active certificate covering both website hostnames.
 - Public website returned HTTP 200 with a cf-ray response header after proxy activation.
 - Microsoft 365 MX record was preserved; actual email delivery was not tested.
-- Bot Fight Mode is not yet confirmed enabled; the API update returned HTTP 400.
+- Bot Fight Mode was enabled manually and verified true through a read-only API check at 02:18 UTC.
 - No purchases or billing changes were made.
