@@ -27,7 +27,12 @@ jobs:
               except urllib.error.HTTPError as e:
                   try: error=json.load(e)
                   except Exception: error={}
-                  print("Failed service:",host,"HTTP",e.code,"code:",error.get("code"),"fields:",[f.get("path") for f in error.get("fields",[])])
+                  print("Failed service:",host,"HTTP",e.code,"response keys:",list(error) if isinstance(error,dict) else "other")
+                  import re
+                  message=str(error.get("message",error.get("detail",error.get("title",error.get("error","")))))
+                  for secret in (os.environ["GD_TOKEN"],os.environ["CF_TOKEN"]): message=message.replace(secret,"[redacted]")
+                  message=re.sub(r"[A-Za-z0-9_.+-]+@[A-Za-z0-9.-]+","[email]",message)
+                  print("API validation reason:",message[:600])
                   sys.exit("API request rejected; check service requirements before continuing.")
           def cf(path,method="GET",body=None):
               r=api("https://api.cloudflare.com/client/v4/",path,os.environ["CF_TOKEN"],method,body)
