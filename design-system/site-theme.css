@@ -42,10 +42,6 @@ body.upnext-identity :is(.footer,footer){border-color:var(--un-color-line);color
 /* Marketing surfaces keep their content/layout and adopt the editorial palette. */
 body.upnext-home .hero{background:var(--un-color-cream)}
 body.upnext-home .hero:before{border-color:#b9c7bc;box-shadow:0 0 0 74px #dce9d5,0 0 0 148px #eeeee1}
-body.upnext-home .signal-ring{border-color:#9bb69c;background:var(--un-color-paper);box-shadow:var(--un-shadow)}
-body.upnext-home .signal-ring.two{background:var(--un-color-sage);border-color:#9bb69c}
-body.upnext-home .signal-ring.three{background:var(--un-color-forest);color:var(--un-color-paper)}
-body.upnext-home .signal-label{background:var(--un-color-paper);border-color:var(--un-color-line);border-radius:var(--un-radius-md)}
 body.upnext-home :is(.principles,.language-card,.landing-program){border-color:var(--un-color-line);border-radius:var(--un-radius-lg)}
 body.upnext-home .language-code{background:var(--un-color-peach);color:var(--un-color-ink)}
 body.upnext-home .build{background:var(--un-color-sage)}
@@ -68,3 +64,31 @@ body.upnext-identity .landing-program:has(a[href*="dpp"]){background:var(--un-co
 body.upnext-identity .landing-program:has(a[href*="healthy-routines"]){background:var(--un-color-sage)}
 body.upnext-learning .library .card,body.upnext-learning .card:has(.read){background:var(--un-color-paper)}
 body.upnext-identity .hero:has(.article-head),body.upnext-learning:has(.library) .hero{background:var(--un-color-sage)}
+
+/* Product-led homepage composition. Real prompts, live product links, no user data. */
+body.upnext-home .hero:before{content:none}
+.product-composition{position:relative;isolation:isolate;max-width:510px;width:100%;justify-self:end;padding:18px 0 12px 22px}
+.product-composition:before{content:"";position:absolute;inset:0 16px 35% 0;background:var(--un-color-lilac);border-radius:110px 12px 12px 12px;z-index:-1}
+.portrait-sheet{position:relative;margin:0 20px 0 0;background:var(--un-color-paper);border:1px solid var(--un-color-ink);border-radius:4px;padding:26px 28px 20px;box-shadow:5px 5px 0 var(--un-color-ink);transform:rotate(-2deg)}
+.product-sheet-label{display:flex;align-items:center;gap:10px;font-size:11px;letter-spacing:.05em;font-weight:600;color:var(--un-color-ink)}
+.product-index{font-size:10px;font-variant-numeric:tabular-nums;border:1px solid currentColor;border-radius:50%;width:24px;height:24px;display:grid;place-items:center;flex:none}
+.product-sheet-arrow{margin-left:auto;font-size:21px;font-weight:400}
+body.upnext-home .portrait-sheet h2{font-size:clamp(27px,2.7vw,35px);margin:26px 0 20px;line-height:1.1;letter-spacing:-.025em}
+.portrait-options{display:flex;flex-wrap:wrap;gap:7px}
+.portrait-options span{padding:5px 10px;border:1px solid #8a9f90;border-radius:4px;font-size:11px;color:var(--un-color-ink)}
+.portrait-options span:first-child{background:var(--un-color-sage)}
+.portrait-options span:last-child{background:var(--un-color-peach)}
+.portrait-eggs{display:flex;gap:7px;flex-wrap:wrap;padding:22px 0;border-bottom:1px solid var(--un-color-line);margin-bottom:15px}
+.portrait-eggs i{display:block;width:20px;height:26px;background:var(--un-color-sage);border:1px solid var(--un-color-forest);border-radius:50% 50% 45% 45%;transform:rotate(12deg)}
+.portrait-eggs i:nth-child(3n){background:var(--un-color-lilac);transform:rotate(-10deg)}
+.portrait-eggs i:nth-child(4n){background:var(--un-color-peach);transform:rotate(3deg)}
+.product-preview-link{display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:12px;font-weight:600;text-decoration:none;min-height:40px;color:var(--un-color-forest)}
+.product-preview-link:hover span:first-child{text-decoration:underline;text-underline-offset:4px}
+.lesson-sheet{position:relative;margin:26px 0 0 42px;background:var(--un-color-forest);color:var(--un-color-paper);padding:24px 26px 18px;border-radius:4px;transform:rotate(2deg)}
+.lesson-sheet .product-sheet-label{color:var(--un-color-paper)}
+.lesson-time{margin-left:auto;font-size:10px;font-weight:400;white-space:nowrap}
+body.upnext-home .lesson-sheet h2{font-size:28px;color:var(--un-color-paper);margin:20px 0 12px;letter-spacing:-.025em}
+.lesson-sheet p{font-size:13px;color:var(--un-color-sage);line-height:1.6;margin:0 0 12px}
+.lesson-sheet .product-preview-link{color:var(--un-color-paper);border-top:1px solid #ffffff40;padding-top:12px}
+@media(max-width:860px){.product-composition{justify-self:center;max-width:510px;padding-left:18px}}
+@media(max-width:560px){.product-composition{padding:14px 6px 8px 12px}.portrait-sheet{margin-right:8px;padding:22px 20px 14px}.lesson-sheet{margin-left:18px;padding:22px 20px 14px}body.upnext-home .portrait-sheet h2{font-size:30px}.portrait-eggs{gap:6px}.portrait-eggs i{width:17px;height:23px}body.upnext-home .lesson-sheet h2{font-size:27px}}

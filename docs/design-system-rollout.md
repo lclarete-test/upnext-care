@@ -16,3 +16,7 @@ Validation completed:
 Verification limit: no authenticated account session was available. Participant dashboard review used the existing HTML with scripts removed in an unshipped local fixture; saving, real account login, and authenticated course/results flows were not exercised end to end. Existing behavior is preserved by the unchanged application code, but this is not an authenticated end-to-end test.
 
 Maintain tokens and theme together. Never copy `showcase.js` into application pages. Do not apply this bridge to authentication or visibility logic. Keep chart series colors distinguishable and preserve existing print/export rules.
+
+## Homepage product composition
+
+Replaces the concentric-circle diagram with a live HTML composition using the actual Life Portrait question “Where do you want to make more room?” and the Healthy Routines lesson “Refine your intention”. Twelve egg shapes reference the Life Portrait exercise; category chips illustrate the product vocabulary, not participant answers or results. Links lead to Life Portrait and the public lesson preview. Content is localized in English, Portuguese and Spanish. No raster illustration, stock photo, invented metric or participant information is used.
