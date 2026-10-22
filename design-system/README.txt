@@ -18,3 +18,6 @@ Brand mark in showcase is a visual proposal, not an automatically adopted replac
 Adoption: integrate tokens; migrate shared buttons/forms/cards; migrate one low-risk page; check responsive layouts, translations, focus, validation and existing behavior; then apply consistently to courses and result views. Existing main site is not modified by this package.
 
 Governance: update tokens, CSS and this reference together. Add components when repeated patterns exist. Version breaking changes separately. No Figma dependency.
+
+SITE ADOPTION
+The production site imports site-theme.css after each page's original styles. This bridge shares the canonical token values and maps existing component classes to the new identity. Public pages and participant views keep their existing markup, behavior, authentication and content. Maintain this bridge with the canonical tokens. Product charts retain their semantic series colors and geometry.

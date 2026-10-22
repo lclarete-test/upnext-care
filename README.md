@@ -13,4 +13,4 @@ The canonical UpNext Care design system is maintained in [design-system/](design
 - HTML starter: `design-system/components.html`
 - Regenerate the reference and download kit: `python3 design-system/build.py`
 
-The system is ready for incremental adoption. Existing product pages have not yet been migrated. The showcase JavaScript is for demonstrations only.
+The shared visual identity is applied to all 36 HTML entrypoints, including public pages and participant screens, through `design-system/site-theme.css`. Existing content and application scripts are preserved. The showcase JavaScript is for demonstrations only.
