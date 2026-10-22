@@ -28,3 +28,4 @@ jobs:
           if isinstance(certs,list): print("Certificate statuses:",[(c.get("type"),c.get("status")) for c in certs])
           bots=get("zones/"+zid+"/bot_management")
           if bots: print("Bot Fight Mode:",bots.get("fight_mode"))
+
