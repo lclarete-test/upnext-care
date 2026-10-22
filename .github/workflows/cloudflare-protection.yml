@@ -5,7 +5,7 @@ on:
       action:
         description: Audit configuration or enable Bot Fight Mode
         type: choice
-        options: [audit, enable-bot-fight-mode]
+        options: [audit, add-upnext-zone, enable-bot-fight-mode]
         default: audit
 permissions: {}
 concurrency:
@@ -41,8 +41,18 @@ jobs:
                   sys.exit("Cloudflare API request failed; check token scope and account configuration.")
               return payload["result"]
           zones = api("zones?name=upnextcare.com")
+          if not zones and os.environ["TASK_ACTION"] == "add-upnext-zone":
+              existing = api("zones?per_page=50")
+              accounts = {z["account"]["id"] for z in existing}
+              if len(accounts) != 1:
+                  sys.exit("Cannot identify one target Cloudflare account from existing zones. Need the intended Account ID; no zone created.")
+              zone = api("zones", "POST", {"name": "upnextcare.com", "account": {"id": next(iter(accounts))}, "type": "full"})
+              with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as report:
+                  report.write("# UpNext zone added\\n\\nStatus: " + zone["status"] + "\\n\\nNameservers: " + ", ".join(zone.get("name_servers", [])) + "\\n\\nDNS records and registrar nameservers still require configuration. No billing or registrar changes made.\\n")
+              print("Zone created; see run summary for assigned nameservers.")
+              sys.exit(0)
           if len(zones) != 1:
-              sys.exit("upnextcare.com not found in token scope. Add it to the intended Cloudflare account first.")
+              sys.exit("upnextcare.com not found in token scope. Use add-upnext-zone to add it to the unique account found in existing zones.")
           zone = zones[0]
           zone_id = zone["id"]
           records = api("zones/" + zone_id + "/dns_records?per_page=100")
