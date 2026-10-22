@@ -43,5 +43,7 @@ jobs:
               req=urllib.request.Request("https://api.cloudflare.com/client/v4/zones/"+zid+"/bot_management",data=json.dumps({"fight_mode":True}).encode(),headers={"Authorization":"Bearer "+os.environ["CF_TOKEN"],"Content-Type":"application/json"},method="PUT")
               try:
                   with urllib.request.urlopen(req,timeout=20) as response: print("Bot protection update:",json.load(response).get("success"))
-              except urllib.error.HTTPError as e: print("Bot protection HTTP:",e.code)
+              except urllib.error.HTTPError as e:
+                  err=json.load(e)
+                  print("Bot protection HTTP:",e.code,"errors:",[(x.get("code"),x.get("message")) for x in err.get("errors",[])])
           print("Bot Fight Mode verified:",get("zones/"+zid+"/bot_management").get("fight_mode"))
