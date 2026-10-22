@@ -1,0 +1,30 @@
+name: UpNext TLS and protection readiness
+on:
+  push:
+    paths: [.github/workflows/upnext-protection-readiness.yml]
+  workflow_dispatch:
+permissions: {}
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - shell: python
+        run: |
+          import json,os,urllib.request,urllib.error
+          def get(path):
+              q=urllib.request.Request("https://api.cloudflare.com/client/v4/"+path,headers={"Authorization":"Bearer "+os.environ["CF_TOKEN"]})
+              try:
+                  with urllib.request.urlopen(q,timeout=20) as r: return json.load(r).get("result")
+              except urllib.error.HTTPError as e:
+                  print(path.split("/")[-1],"HTTP",e.code); return None
+          z=get("zones?name=upnextcare.com")[0]; zid=z["id"]
+          print("Zone status:",z["status"])
+          ssl=get("zones/"+zid+"/settings/ssl")
+          if ssl: print("SSL mode:",ssl.get("value"))
+          certs=get("zones/"+zid+"/ssl/certificate_packs?status=all")
+          if isinstance(certs,list): print("Certificate statuses:",[(c.get("type"),c.get("status")) for c in certs])
+          bots=get("zones/"+zid+"/bot_management")
+          if bots: print("Bot Fight Mode:",bots.get("fight_mode"))
