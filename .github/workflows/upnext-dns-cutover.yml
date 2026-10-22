@@ -21,10 +21,14 @@ jobs:
           import json,os,sys,urllib.request,urllib.error
           domain="upnextcare.com"
           def api(host,path,token,method="GET",body=None):
-              req=urllib.request.Request(host+path,data=None if body is None else json.dumps(body).encode(),headers={"Authorization":"Bearer "+token,"Content-Type":"application/json"},method=method)
+              req=urllib.request.Request(host+path,data=None if body is None else json.dumps(body).encode(),headers=({"Authorization":"Bearer "+token,"Content-Type":"application/json"} if token else {"Accept":"application/json"}),method=method)
               try:
                   with urllib.request.urlopen(req,timeout=30) as r: return json.load(r)
-              except urllib.error.HTTPError as e: sys.exit("API request failed: HTTP "+str(e.code)+"; stopped without changing nameservers.")
+              except urllib.error.HTTPError as e:
+                  try: error=json.load(e)
+                  except Exception: error={}
+                  print("Failed service:",host,"HTTP",e.code,"code:",error.get("code"),"fields:",[f.get("path") for f in error.get("fields",[])])
+                  sys.exit("API request rejected; check service requirements before continuing.")
           def cf(path,method="GET",body=None):
               r=api("https://api.cloudflare.com/client/v4/",path,os.environ["CF_TOKEN"],method,body)
               if not r.get("success"): sys.exit("Cloudflare API rejected operation.")
