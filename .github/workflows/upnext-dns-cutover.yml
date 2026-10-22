@@ -1,4 +1,4 @@
-name: Activate UpNext Cloudflare nameservers
+name: Activate UpNext Cloudflare DNS
 on:
   push:
     paths: [.github/workflows/upnext-dns-cutover.yml]
