@@ -31,12 +31,17 @@ jobs:
           if bots: print("Bot Fight Mode:",bots.get("fight_mode"))
 
 
-          if z.get("plan",{}).get("name","").lower() not in ("free","free website"): raise SystemExit("Free plan required.")
-          if not bots.get("fight_mode"):
-              req=urllib.request.Request("https://api.cloudflare.com/client/v4/zones/"+zid+"/bot_management",data=json.dumps({"fight_mode":True}).encode(),headers={"Authorization":"Bearer "+os.environ["CF_TOKEN"],"Content-Type":"application/json"},method="PUT")
-              with urllib.request.urlopen(req,timeout=20) as response:
-                  if not json.load(response).get("success"): raise SystemExit("Bot protection rejected.")
-          print("Bot Fight Mode verified:",get("zones/"+zid+"/bot_management").get("fight_mode"))
           req=urllib.request.Request("https://api.godaddy.com/v3/domains/operations/f5eed732-0480-422c-8f16-a3e83bd5aa9c",headers={"Authorization":"Bearer "+os.environ["GD_TOKEN"]})
           with urllib.request.urlopen(req,timeout=20) as response:
               op=json.load(response); print("GoDaddy nameserver operation:",op.get("status"))
+          req=urllib.request.Request("https://api.cloudflare.com/client/v4/zones/"+zid+"/activation_check",headers={"Authorization":"Bearer "+os.environ["CF_TOKEN"]},method="PUT")
+          try:
+              with urllib.request.urlopen(req,timeout=20) as response: print("Activation check requested:",json.load(response).get("success"))
+          except urllib.error.HTTPError as e: print("Activation check HTTP:",e.code)
+          if z.get("plan",{}).get("name","").lower() not in ("free","free website"): raise SystemExit("Free plan required.")
+          if z["status"]=="active" and not bots.get("fight_mode"):
+              req=urllib.request.Request("https://api.cloudflare.com/client/v4/zones/"+zid+"/bot_management",data=json.dumps({"fight_mode":True}).encode(),headers={"Authorization":"Bearer "+os.environ["CF_TOKEN"],"Content-Type":"application/json"},method="PUT")
+              try:
+                  with urllib.request.urlopen(req,timeout=20) as response: print("Bot protection update:",json.load(response).get("success"))
+              except urllib.error.HTTPError as e: print("Bot protection HTTP:",e.code)
+          print("Bot Fight Mode verified:",get("zones/"+zid+"/bot_management").get("fight_mode"))
