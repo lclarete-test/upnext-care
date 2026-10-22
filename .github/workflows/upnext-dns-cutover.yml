@@ -1,7 +1,5 @@
 name: Activate UpNext Cloudflare DNS
 on:
-  push:
-    paths: [.github/workflows/upnext-dns-cutover.yml]
   workflow_dispatch:
 permissions: {}
 concurrency:
