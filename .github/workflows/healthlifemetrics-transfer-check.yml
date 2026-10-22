@@ -1,0 +1,56 @@
+name: Health Life Metrics transfer check
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DNS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      REGISTRAR_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN_HEALTHLIFEMETRICS }}
+    steps:
+      - name: Read transfer status without initiating a transfer
+        shell: python
+        run: |
+          import json, os, sys, urllib.request, urllib.error
+          def api(path, token):
+              req = urllib.request.Request("https://api.cloudflare.com/client/v4/" + path, headers={"Authorization": "Bearer " + token})
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as response:
+                      payload = json.load(response)
+              except urllib.error.HTTPError as error:
+                  return None, error.code
+              return (payload.get("result"), 200) if payload.get("success") else (None, 400)
+          dns = os.environ.get("DNS_TOKEN", "")
+          registrar = os.environ.get("REGISTRAR_TOKEN", "")
+          if not dns or not registrar:
+              sys.exit("Required repository secret missing.")
+          zones, code = api("zones?name=healthlifemetrics.com", dns)
+          if code != 200 or len(zones) != 1:
+              sys.exit("Cannot resolve healthlifemetrics.com to one Cloudflare account using DNS token.")
+          zone = zones[0]
+          account_id = zone["account"]["id"]
+          lines = ["# Health Life Metrics transfer check", "", "DNS zone status: " + zone["status"]]
+          verified, verify_code = api("user/tokens/verify", registrar)
+          lines.append("Registrar token verification HTTP: " + str(verify_code))
+          if verified:
+              lines.append("Token status: " + str(verified.get("status", "not reported")))
+          result, status = api("accounts/" + account_id + "/registrar/registrations/healthlifemetrics.com/transfer-in-status", registrar)
+          lines.append("Transfer status query HTTP: " + str(status))
+          if status == 200 and result:
+              lines.extend(["Transfer workflow: " + str(result.get("state", "not reported")), "Completed: " + str(result.get("completed"))])
+              context = result.get("context") or {}
+              for field in ("transfer_status", "foa_required"):
+                  if field in context:
+                      lines.append(field + ": " + str(context[field]))
+          elif status == 404:
+              lines.append("No transfer workflow found at this endpoint. This does not confirm transfer eligibility or completion.")
+          elif status in (401, 403):
+              lines.append("Registrar access denied: inspect token scope or account membership.")
+          lines.extend(["", "Read-only check: no transfer initiated and no payment requested."])
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as report:
+              report.write("\n".join(lines) + "\n")
+          print("\n".join(lines))
+          if status in (401, 403) or verify_code != 200:
+              sys.exit(1)
