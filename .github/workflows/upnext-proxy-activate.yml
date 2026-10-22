@@ -52,6 +52,11 @@ jobs:
           print("Website proxy enabled and verified:",len(proxied),"records.")
           print("HTTPS mode: Full (strict). Active certificate covers root and www.")
           bots=cf("zones/"+zid+"/bot_management")
-          if not bots.get("fight_mode"): cf("zones/"+zid+"/bot_management","PUT",{"fight_mode":True})
+          if not bots.get("fight_mode"):
+              fields=("ai_bots_migration_opt_out","ai_bots_protection","ai_search","ai_training","ai_user","bot_preference_sync_enabled","cf_robots_variant","content_bots_protection","crawler_protection","enable_js","is_robots_txt_managed","jsd_api_results_enabled")
+              body={k:bots[k] for k in fields if k in bots}
+              body["fight_mode"]=True
+              print("Submitting current free bot configuration with fight_mode enabled.")
+              cf("zones/"+zid+"/bot_management","PUT",body)
           print("Bot Fight Mode:",cf("zones/"+zid+"/bot_management").get("fight_mode"))
           print("No email records, billing, AI crawler policies, or registration settings changed.")
