@@ -21,7 +21,7 @@ jobs:
           import json,os,sys,urllib.request,urllib.error
           domain="upnextcare.com"
           def api(host,path,token,method="GET",body=None):
-              req=urllib.request.Request(host+path,data=None if body is None else json.dumps(body).encode(),headers=({"Authorization":"Bearer "+token,"Content-Type":"application/json"} if token else {"Accept":"application/json"}),method=method)
+              req=urllib.request.Request(host+path,data=None if body is None else json.dumps(body).encode(),headers=({"Authorization":"Bearer "+token,"Content-Type":"application/json",**({"Idempotency-Key":"b496456e-d495-4c5c-9386-e8c875e65b94"} if host=="https://api.godaddy.com/" and method=="PUT" else {})} if token else {"Accept":"application/json"}),method=method)
               try:
                   with urllib.request.urlopen(req,timeout=30) as r: return json.load(r)
               except urllib.error.HTTPError as e:
@@ -98,3 +98,5 @@ jobs:
           result=api("https://api.godaddy.com/","v3/domains/domain-names/"+domain+"/nameservers",os.environ["GD_TOKEN"],"PUT",ns)
           print("GoDaddy accepted the Cloudflare nameserver change.")
           print("Target nameservers:",", ".join(ns))
+
+          print("GoDaddy operation:",result.get("operationId"),"status:",result.get("status"))
