@@ -6,6 +6,7 @@ ROOT=Path(__file__).resolve().parents[1]
 layout=(ROOT/'scripts/publish-search-query-articles.py').read_text().split('for item in DATA:')[0]
 exec(compile(layout,str(ROOT/'scripts/publish-search-query-articles.py'),'exec'))
 DATA=json.loads((ROOT/'content/sleep-hair-articles.json').read_text())
+REMOVED_SLUGS=['can-gray-hair-be-reversed','hair-loss-vitamin-mineral-deficiency']
 DATE='2026-10-23'
 for lang,labels in {'en':['Sleep','Hair health','October 23, 2026'],'pt':['Sono','Saúde do cabelo','23 de outubro de 2026'],'es':['Sueño','Salud del cabello','23 de octubre de 2026']}.items():
  COPY[lang]['category'].update({'Sleep':labels[0],'Hair health':labels[1]})
@@ -42,16 +43,32 @@ for lang in COPY:
   for cat in ['Sleep','Hair health']:
    if f'data-filter="{cat}"' not in t:t=t.replace('</div><div class="cards">',f'<button type="button" aria-pressed="false" data-filter="{cat}">{cat}</button></div><div class="cards">',1)
   t=t.replace('17 articles · About 3 minutes each · Articles in English','17 articles · Health learning in English, Portuguese and Spanish')
-  t=t.replace('13 articles','17 articles').replace('Simple articles about diabetes, glucose, blood tests and everyday habits. Explore practical health learning from UpNext.','Practical articles about sleep, hair health, diabetes, blood tests and everyday habits. Explore health learning from UpNext.').replace('Clear, short reads about diabetes, blood glucose and everyday habits.','Clear, short reads about sleep, hair health, diabetes and everyday habits.')
+  t=t.replace('13 articles','15 articles').replace('Simple articles about diabetes, glucose, blood tests and everyday habits. Explore practical health learning from UpNext.','Practical articles about sleep, diabetes, blood tests and everyday habits. Explore health learning from UpNext.').replace('Practical articles about sleep, hair health, diabetes, blood tests and everyday habits. Explore health learning from UpNext.','Practical articles about sleep, diabetes, blood tests and everyday habits. Explore health learning from UpNext.').replace('Clear, short reads about diabetes, blood glucose and everyday habits.','Clear, short reads about sleep, diabetes and everyday habits.').replace('Clear, short reads about sleep, hair health, diabetes and everyday habits.','Clear, short reads about sleep, diabetes and everyday habits.')
  else:
   old={'pt':'Três novos artigos sobre A1C, sintomas e diabetes tipo 2, disponíveis em português, inglês e espanhol.','es':'Tres artículos nuevos sobre A1C, síntomas y diabetes tipo 2, disponibles en español, inglés y portugués.'}[lang]
-  new={'pt':'Artigos sobre sono, saúde do cabelo, exames e diabetes, disponíveis em português, inglês e espanhol.','es':'Artículos sobre sueño, salud del cabello, pruebas y diabetes, disponibles en español, inglés y portugués.'}[lang]
-  t=t.replace(old,new)
+  previous={'pt':'Artigos sobre sono, saúde do cabelo, exames e diabetes, disponíveis em português, inglês e espanhol.','es':'Artículos sobre sueño, salud del cabello, pruebas y diabetes, disponibles en español, inglés y portugués.'}[lang]
+  new={'pt':'Artigos sobre sono, exames e diabetes, disponíveis em português, inglês e espanhol.','es':'Artículos sobre sueño, pruebas y diabetes, disponibles en español, inglés y portugués.'}[lang]
+  t=t.replace(old,new).replace(previous,new)
+ if lang=='en':
+  t=t.replace('<button type="button" aria-pressed="false" data-filter="Hair health">Hair health</button>','')
+  t=t.replace('17 articles · Health learning in English, Portuguese and Spanish','15 articles · Health learning in English, Portuguese and Spanish')
+  t=t.replace('17 articles','15 articles')
+ else:
+  t=t.replace('7 articles','5 articles')
  p.write_text(t)
+# These two stories now live on UpCare Health. Remove their old UpNext pages.
+for slug in REMOVED_SLUGS:
+ for lang in COPY:
+  p=ROOT/article_path(slug,lang).strip('/')/'index.html'
+  if p.exists(): p.unlink()
 # Add canonical URLs and reciprocal language annotations to both existing sitemaps.
 ns={'s':'http://www.sitemaps.org/schemas/sitemap/0.9'}
 for name in ['sitemap.xml','sitemap-google.xml']:
  p=ROOT/name;t=p.read_text()
+ for slug in REMOVED_SLUGS:
+  for lang in COPY:
+   path=article_path(slug,lang)
+   t=re.sub(r'<url><loc>'+re.escape(DOMAIN+path)+r'</loc>.*?</url>','',t,flags=re.S)
  for item in DATA:
   alts={l:article_path(item['slug'],l) for l in COPY}
   for path in alts.values():
