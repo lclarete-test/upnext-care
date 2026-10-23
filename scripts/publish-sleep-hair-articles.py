@@ -10,11 +10,20 @@ DATE='2026-10-23'
 for lang,labels in {'en':['Sleep','Hair health','October 23, 2026'],'pt':['Sono','Saúde do cabelo','23 de outubro de 2026'],'es':['Sueño','Salud del cabello','23 de octubre de 2026']}.items():
  COPY[lang]['category'].update({'Sleep':labels[0],'Hair health':labels[1]})
  COPY[lang]['date']=labels[2]
+def read_label(item,lang):
+ words=len(re.sub('<[^>]+>',' ',' '.join(' '.join(section[1:]) for section in item[lang]['sections'])).split())
+ minutes=max(1,(words+199)//200)
+ return {'en':f'About {minutes} min read','pt':f'Cerca de {minutes} min de leitura','es':f'Aproximadamente {minutes} min de lectura'}[lang]
+original_card=card
+def card(item,lang,index):
+ COPY[lang]['read']=read_label(item,lang)
+ return original_card(item,lang,index)
 def themed(t):
  return t.replace('</head>','<link rel="stylesheet" href="/design-system/site-theme.css?v=1.0.0"></head>').replace('<body>','<body class="upnext-identity upnext-learning">')
 for item in DATA:
  paths={l:article_path(item['slug'],l) for l in COPY}
  for lang,c in COPY.items():
+  c['read']=read_label(item,lang)
   d=item[lang];path=paths[lang];words=len(re.sub('<[^>]+>',' ',' '.join(' '.join(s) for s in d['sections'])).split())
   schema={'@context':'https://schema.org','@type':'Article','headline':d['title'],'description':d['description'],'datePublished':DATE,'dateModified':DATE,'author':{'@type':'Organization','name':'UpNext editorial'},'publisher':{'@type':'Organization','name':'UpNext'},'mainEntityOfPage':DOMAIN+path,'inLanguage':c['html'],'citation':[s[0] for s in item['sources']],'wordCount':words}
   sections=''.join('<section><h2>'+esc(s[0])+'</h2>'+''.join('<p>'+p+'</p>' for p in s[1:])+'</section>' for s in d['sections'])
@@ -32,6 +41,7 @@ for lang in COPY:
  if lang=='en':
   for cat in ['Sleep','Hair health']:
    if f'data-filter="{cat}"' not in t:t=t.replace('</div><div class="cards">',f'<button type="button" aria-pressed="false" data-filter="{cat}">{cat}</button></div><div class="cards">',1)
+  t=t.replace('17 articles · About 3 minutes each · Articles in English','17 articles · Health learning in English, Portuguese and Spanish')
   t=t.replace('13 articles','17 articles').replace('Simple articles about diabetes, glucose, blood tests and everyday habits. Explore practical health learning from UpNext.','Practical articles about sleep, hair health, diabetes, blood tests and everyday habits. Explore health learning from UpNext.').replace('Clear, short reads about diabetes, blood glucose and everyday habits.','Clear, short reads about sleep, hair health, diabetes and everyday habits.')
  else:
   old={'pt':'Três novos artigos sobre A1C, sintomas e diabetes tipo 2, disponíveis em português, inglês e espanhol.','es':'Tres artículos nuevos sobre A1C, síntomas y diabetes tipo 2, disponibles en español, inglés y portugués.'}[lang]
