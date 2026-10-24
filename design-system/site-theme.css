@@ -92,3 +92,13 @@ body.upnext-home .lesson-sheet h2{font-size:28px;color:var(--un-color-paper);mar
 .lesson-sheet .product-preview-link{color:var(--un-color-paper);border-top:1px solid #ffffff40;padding-top:12px}
 @media(max-width:860px){.product-composition{justify-self:center;max-width:510px;padding-left:18px}}
 @media(max-width:560px){.product-composition{padding:14px 6px 8px 12px}.portrait-sheet{margin-right:8px;padding:22px 20px 14px}.lesson-sheet{margin-left:18px;padding:22px 20px 14px}body.upnext-home .portrait-sheet h2{font-size:30px}.portrait-eggs{gap:6px}.portrait-eggs i{width:17px;height:23px}body.upnext-home .lesson-sheet h2{font-size:27px}}
+
+/* Explicit paired colors prevent the primary selector from overriding Google backgrounds. */
+body.upnext-identity :is(button.button.google,a.button.google,button.button.secondary,a.button.secondary,button.btn.secondary,a.btn.secondary){background:var(--un-color-paper);color:var(--un-color-forest)!important;border:1px solid var(--un-color-forest)}
+body.upnext-identity :is(button.button.google,a.button.google,button.button.secondary,a.button.secondary,button.btn.secondary,a.btn.secondary):hover{background:var(--un-color-sage);color:var(--un-color-forest)!important}
+body.upnext-identity :is(.text-button,.text-btn,.forgot){min-height:44px;padding:8px 6px;text-decoration:underline;text-underline-offset:4px}
+body.upnext-identity .choice input:focus-visible+span{outline:3px solid var(--un-color-info);outline-offset:4px}
+body.upnext-identity :is(.or,.source,.security-note){color:var(--un-color-muted)}
+body.upnext-identity :is(.field input,.field select,.field textarea){border-color:#718579}
+body.upnext-identity .field input:focus-visible,body.upnext-identity .field select:focus-visible{outline:3px solid var(--un-color-info);outline-offset:3px}
+body.upnext-identity :is(.button,.btn){white-space:normal;overflow-wrap:anywhere}
