@@ -19,9 +19,9 @@ document.getElementById('date').value = new Date().toISOString().slice(0, 10);
 const moduleStates = await getAllModuleStates(user.uid);
 const list = document.getElementById('modules');
 list.closest('.panel').querySelector('.intro').textContent = {
-  en: 'Module 0 is available now. You can preview the full curriculum below; upcoming modules remain locked until the program begins.',
-  es: 'El Módulo 0 está disponible ahora. Puede explorar todo el currículo; los próximos módulos seguirán bloqueados hasta el inicio del programa.',
-  pt: 'O Módulo 0 está disponível agora. Você pode visualizar todo o currículo abaixo; os próximos módulos permanecem bloqueados até o início do programa.'
+  en: 'All modules are available in your participant area. Choose a module to begin or continue learning.',
+  es: 'Todos los módulos están disponibles en su área de participante. Elija un módulo para comenzar o continuar.',
+  pt: 'Todos os módulos estão disponíveis na sua área de participante. Escolha um módulo para começar ou continuar.'
 }[activeLanguage];
 const onboardingComplete = moduleStates.get(0)?.completed === true;
 const item = document.createElement('a');
@@ -36,15 +36,12 @@ const moduleOne = {
 for (let number = 1; number <= 26; number += 1) {
   const data = number === 1 ? moduleOne : window.DPP_MODULES?.[number];
   if (!data) continue;
-  const card = document.createElement('button');
-  card.type = 'button';
-  card.className = 'module locked';
-  card.setAttribute('aria-expanded', 'false');
-  card.innerHTML = `<span class="module-number">${String(number).padStart(2, '0')}</span><div><h3>${data.title}</h3><small>${ui.locked}</small><p class="module-preview">${data.intro}</p></div><span class="module-status" aria-hidden="true">🔒</span>`;
-  card.addEventListener('click', () => {
-    const expanded = card.getAttribute('aria-expanded') === 'true';
-    card.setAttribute('aria-expanded', String(!expanded));
-  });
+  const completed = moduleStates.get(number)?.completed === true;
+  const card = document.createElement('a');
+  card.className = `module${completed ? ' complete' : ''}`;
+  card.href = number === 1 ? 'dpp-modulo-1.html' : `dpp-modulo.html?modulo=${number}`;
+  const status = completed ? { en: 'Completed', es: 'Completado', pt: 'Concluído' }[activeLanguage] : { en: 'Available now', es: 'Disponible ahora', pt: 'Disponível agora' }[activeLanguage];
+  card.innerHTML = `<span class="module-number">${completed ? '✓' : String(number).padStart(2, '0')}</span><div><h3>${data.title}</h3><small>${status}</small><p class="module-preview">${data.intro}</p></div><span class="module-status" aria-hidden="true">→</span>`;
   list.append(card);
 }
 const completedCount = [...moduleStates.values()].filter(state => state.completed === true).length;
