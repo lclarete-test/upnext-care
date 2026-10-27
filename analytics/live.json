@@ -1,14 +1,14 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-27T02:13:22.725Z",
+  "updated_at": "2026-10-27T07:51:31.955Z",
   "timezone": "America/New_York",
   "window": "Last 30 days plus today",
   "source": "PostHog aggregate endpoints",
   "privacy": "Aggregate counts only; no person-level fields.",
   "refresh_minutes": 15,
   "totals": {
-    "pageviews": 241,
-    "daily_visitors": 93,
+    "pageviews": 244,
+    "daily_visitors": 96,
     "article_clicks": 13,
     "program_views": 15,
     "signup_opens": 6,
@@ -19,19 +19,6 @@
     "lessons_completed": 0
   },
   "daily": [
-    {
-      "date": "2026-09-26",
-      "pageviews": 0,
-      "daily_visitors": 0,
-      "article_clicks": 0,
-      "program_views": 0,
-      "signup_opens": 0,
-      "accounts_created": 0,
-      "logins": 0,
-      "learning_sessions": 0,
-      "lessons_started": 0,
-      "lessons_completed": 0
-    },
     {
       "date": "2026-09-27",
       "pageviews": 0,
@@ -411,8 +398,21 @@
     },
     {
       "date": "2026-10-26",
-      "pageviews": 3,
-      "daily_visitors": 3,
+      "pageviews": 5,
+      "daily_visitors": 5,
+      "article_clicks": 0,
+      "program_views": 0,
+      "signup_opens": 0,
+      "accounts_created": 0,
+      "logins": 0,
+      "learning_sessions": 0,
+      "lessons_started": 0,
+      "lessons_completed": 0
+    },
+    {
+      "date": "2026-10-27",
+      "pageviews": 1,
+      "daily_visitors": 1,
       "article_clicks": 0,
       "program_views": 0,
       "signup_opens": 0,
@@ -426,12 +426,8 @@
   "devices": [
     {
       "device": "Desktop",
-      "pageviews": 204,
+      "pageviews": 207,
       "daily": [
-        {
-          "date": "2026-09-26",
-          "pageviews": 0
-        },
         {
           "date": "2026-09-27",
           "pageviews": 0
@@ -550,7 +546,11 @@
         },
         {
           "date": "2026-10-26",
-          "pageviews": 2
+          "pageviews": 4
+        },
+        {
+          "date": "2026-10-27",
+          "pageviews": 1
         }
       ]
     },
@@ -558,10 +558,6 @@
       "device": "Mobile",
       "pageviews": 37,
       "daily": [
-        {
-          "date": "2026-09-26",
-          "pageviews": 0
-        },
         {
           "date": "2026-09-27",
           "pageviews": 0
@@ -681,6 +677,10 @@
         {
           "date": "2026-10-26",
           "pageviews": 1
+        },
+        {
+          "date": "2026-10-27",
+          "pageviews": 0
         }
       ]
     }
