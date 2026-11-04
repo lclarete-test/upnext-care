@@ -1,14 +1,14 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-11-04T07:59:19.168Z",
+  "updated_at": "2026-11-04T15:59:28.493Z",
   "timezone": "America/New_York",
   "window": "Last 30 days plus today",
   "source": "PostHog aggregate endpoints",
   "privacy": "Aggregate counts only; no person-level fields.",
   "refresh_minutes": 15,
   "totals": {
-    "pageviews": 265,
-    "daily_visitors": 117,
+    "pageviews": 266,
+    "daily_visitors": 118,
     "article_clicks": 13,
     "program_views": 15,
     "signup_opens": 6,
@@ -411,8 +411,8 @@
     },
     {
       "date": "2026-11-04",
-      "pageviews": 0,
-      "daily_visitors": 0,
+      "pageviews": 1,
+      "daily_visitors": 1,
       "article_clicks": 0,
       "program_views": 0,
       "signup_opens": 0,
@@ -426,7 +426,7 @@
   "devices": [
     {
       "device": "Desktop",
-      "pageviews": 228,
+      "pageviews": 229,
       "daily": [
         {
           "date": "2026-10-05",
@@ -550,7 +550,7 @@
         },
         {
           "date": "2026-11-04",
-          "pageviews": 0
+          "pageviews": 1
         }
       ]
     },
