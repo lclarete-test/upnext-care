@@ -53,21 +53,27 @@ function doPost(e) {
         Number(data.completedExperiments||0),String(data.priority||''),Number(data.cycle||30),'1'];
       if(pIndex>=0)participantSheet.getRange(pIndex+2,1,1,row.length).setValues([row]);
       else participantSheet.appendRow(row);
-      // Event ids prevent duplicate submissions on retries.
-      for (const item of entries) {
-        if (!item || !SAFE_ACTIONS.has(item.kind)) continue;
-        const eventId=String(item.id||'');
-        if(!/^[A-Za-z0-9_-]{8,80}$/.test(eventId))continue;
-        const moduleIndex=Number(item.module);
-        if(!Number.isInteger(moduleIndex)||moduleIndex<0||moduleIndex>5)continue;
-        if(item.kind==='assessment') {
-          const score=Number(item.score);
-          if(!Number.isInteger(score)||score<0||score>10)continue;
-          if(hasId(assessSheet,eventId))continue;
-          assessSheet.appendRow([eventId,pseudo,now,moduleIndex+1,MODULE_NAMES[moduleIndex],score,locale,String(item.cycleId||'')]);
-        } else if(item.kind==='experiment'||item.kind==='cycle') {
-          if(hasId(activitySheet,eventId))continue;
-          activitySheet.appendRow([eventId,pseudo,now,moduleIndex+1,item.kind,String(item.cycleId||'')]);
+      // Idempotent latest-state upsert: one row per participant and dimension.
+      const scores = data.scores && typeof data.scores==='object' ? data.scores : {};
+      const done = data.done && typeof data.done==='object' ? data.done : {};
+      for (let i=0;i<6;i++){
+        const v=scores[String(i)];
+        const score=Number(v);
+        if(v!==undefined && Number.isInteger(score) && score>=0 && score<=10){
+          const key=pseudo+'-'+(i+1);
+          const row=[key,pseudo,now,i+1,MODULE_NAMES[i],score,locale,String(data.cycle||30)];
+          const records=assessSheet.getLastRow()>1?assessSheet.getRange(2,1,assessSheet.getLastRow()-1,1).getValues().flat():[];
+          const index=records.indexOf(key);
+          if(index>=0)assessSheet.getRange(index+2,1,1,row.length).setValues([row]);
+          else assessSheet.appendRow(row);
+        }
+        if(done[String(i)]===true){
+          const key=pseudo+'-'+(i+1)+'-completed';
+          const row=[key,pseudo,now,i+1,'experiment_completed',String(data.cycle||30)];
+          const records=activitySheet.getLastRow()>1?activitySheet.getRange(2,1,activitySheet.getLastRow()-1,1).getValues().flat():[];
+          const index=records.indexOf(key);
+          if(index>=0)activitySheet.getRange(index+2,1,1,row.length).setValues([row]);
+          else activitySheet.appendRow(row);
         }
       }
       const cRows=consentSheet.getLastRow()>1
