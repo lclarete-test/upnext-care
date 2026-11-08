@@ -1,10 +1,11 @@
-import {auth} from '../dpp/dpp-firebase.js';
+import {auth,db} from '../dpp/dpp-firebase.js';
+import {doc,setDoc,getDoc,serverTimestamp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 import {onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 const all=window.UPNEXT_BUILD_YOURSELF;
 const params=new URLSearchParams(location.search);
 let lang=['en','pt','es'].includes(params.get('lang'))?params.get('lang'):(localStorage.getItem('upnext-language')||'en');
 let view='landing',idx=0,user=null;
-const empty=()=>({scores:{},answers:{},actions:{},done:{},priority:0,cycle:30,review:''});
+const empty=()=>({scores:{},answers:{},actions:{},done:{},priority:0,cycle:30,review:'',centralConsent:false});
 let state=empty();
 const root=document.getElementById('app'),sel=document.getElementById('language');
 sel.value=lang;
@@ -12,7 +13,54 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const t=()=>all[lang];
 const key=()=>user?'upnext-build-yourself:'+user.uid:null;
 function load(){try{state={...empty(),...JSON.parse(localStorage.getItem(key())||'{}')}}catch(e){state=empty()}}
-function save(){if(user)try{localStorage.setItem(key(),JSON.stringify(state))}catch(e){alert('Your browser could not save this reflection. Please make a copy of your answers.')}}
+function save(){if(user)try{localStorage.setItem(key(),JSON.stringify(state));scheduleCentral()}catch(e){alert('Your browser could not save this reflection. Please make a copy of your answers.')}}
+
+let syncTimer=null;
+let syncStatus='local';
+async function loadCentral(){
+ if(!user)return;
+ try{
+  const snapshot=await getDoc(doc(db,'users',user.uid,'build-yourself','progress'));
+  if(snapshot.exists()&&snapshot.data().consented===true){
+   const remote=snapshot.data();
+   state.scores={...remote.scores,...state.scores};
+   state.done={...remote.done,...state.done};
+   state.priority=remote.priority??state.priority;
+   state.cycle=remote.cycle??state.cycle;
+   state.centralConsent=true;
+   localStorage.setItem(key(),JSON.stringify(state));
+  }
+ }catch(e){syncStatus='error';}
+}
+async function syncCentral(){
+ if(!user||!state.centralConsent)return;
+ syncStatus='saving';updateSyncIndicator();
+ try{
+  await setDoc(doc(db,'users',user.uid,'build-yourself','progress'),{
+   schemaVersion:1,consented:true,language:lang,
+   scores:state.scores,done:state.done,
+   priority:state.priority,cycle:state.cycle,updatedAt:serverTimestamp()
+  },{merge:true});
+  syncStatus='saved';
+ }catch(e){syncStatus='error';}
+ updateSyncIndicator();
+}
+function updateSyncIndicator(){
+ const el=document.querySelector('[data-sync-status]');
+ if(!el)return;
+ const labels={
+ en:{local:'Private browser-only storage',saving:'Saving to your UpNext account…',saved:'Activity saved to your UpNext account',error:'Account sync unavailable. Your browser copy remains saved.'},
+ pt:{local:'Dados privados neste navegador',saving:'Salvando na conta UpNext…',saved:'Atividade salva na sua conta UpNext',error:'Sincronização indisponível. Os dados permanecem no navegador.'},
+ es:{local:'Datos privados en este navegador',saving:'Guardando en tu cuenta UpNext…',saved:'Actividad guardada en tu cuenta UpNext',error:'Sincronización no disponible. Los datos siguen en este navegador.'}
+ };
+ el.textContent=labels[lang][state.centralConsent?syncStatus:'local'];
+}
+function scheduleCentral(){
+ if(!state.centralConsent)return;
+ clearTimeout(syncTimer);
+ syncTimer=setTimeout(syncCentral,1000);
+}
+
 function step(n){idx=n;view='module';render();window.scrollTo({top:0,behavior:'smooth'})}
 function landing(){const c=t();return '<section class="hero"><div class="eyebrow">'+esc(c.tag)+'</div><h1>'+esc(c.hero)+'</h1><p class="claim">'+esc(c.claim)+'</p><p class="lead">'+esc(c.intro)+'</p><div class="actions"><button class="primary" data-go="start">'+esc(c.start)+'</button><a class="secondary" href="#dimensions">'+esc(c.explore)+'</a></div></section><section id="dimensions" class="section"><div class="eyebrow">'+esc(c.explore)+'</div><h2>'+esc(c.title)+'</h2><div class="grid">'+c.modules.map((m,i)=>'<article class="card"><span class="num">0'+(i+1)+'</span><h3>'+esc(m[0])+'</h3><p><strong>'+esc(m[1])+'</strong></p><p>'+esc(m[2])+'</p></article>').join('')+'</div></section><section class="section"><div class="panel"><h2>'+esc(c.how)+'</h2><p class="lead">'+esc(c.process)+'</p><div class="actions"><button class="primary" data-go="start">'+esc(c.start)+'</button></div><p class="muted">'+esc(c.privacy)+'</p></div></section>'}
 function gate(){const c=t();return '<section class="panel"><h1>'+esc(c.login)+'</h1><p>'+esc(c.privacy)+'</p><a class="button" href="/life-portrait/?lang='+lang+'">'+esc(c.signIn)+'</a></section>'}
@@ -21,9 +69,9 @@ return '<div class="journey-head"><div class="eyebrow">'+esc(c.tag)+'</div><h1>'
 function reportText(){const c=t();return c.title+'\n\n'+c.modules.map((m,i)=>m[0]+' | '+(state.scores[i]===undefined?'—':state.scores[i]+'/10')+'\n'+m[4].map((q,j)=>q+'\n'+(state.answers[i+':'+j]||'')).join('\n')+'\n'+c.commit+': '+(state.actions[i]||'')).join('\n\n')+'\n\n'+c.priority+': '+c.modules[state.priority][0]+'\n'+c.cycle+': '+state.cycle+'\n'+c.review+': '+state.review}
 function downloadCsv(){const c=t(),rows=[['module','dimension','score','completed','action','reflection_1','reflection_2','reflection_3']];c.modules.forEach((m,i)=>rows.push([String(i+1),m[0],state.scores[i]===undefined?'':String(state.scores[i]),state.done[i]?'yes':'no',state.actions[i]||'',...m[4].map((_,j)=>state.answers[i+':'+j]||'')]));rows.push(['summary','', '', '',String(state.cycle),c.modules[state.priority][0],state.review,'']);const csv=rows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='upnext-build-yourself-'+lang+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000)}
 function summary(){const c=t();return '<div class="journey-head"><h1>'+esc(c.summary)+'</h1></div><div class="panel">'+c.modules.map((m,i)=>'<div class="rowline"><strong>'+esc(m[0])+'</strong><span>'+(state.scores[i]===undefined?'—':state.scores[i]+'/10')+'</span></div><div class="progress"><span style="width:'+((state.scores[i]||0)*10)+'%"></span></div>').join('')+'<label class="field">'+esc(c.priority)+'<select data-priority>'+c.modules.map((m,i)=>'<option value="'+i+'" '+(state.priority===i?'selected':'')+'>'+esc(m[0])+'</option>').join('')+'</select></label><label class="field">'+esc(c.cycle)+'<select data-cycle>'+[7,30,90].map(n=>'<option value="'+n+'" '+(state.cycle===n?'selected':'')+'>'+n+'</option>').join('')+'</select></label><label class="field">'+esc(c.review)+'<textarea data-review>'+esc(state.review)+'</textarea></label><div class="controls"><button class="primary" data-go="copy">'+esc(c.copy)+'</button><button class="secondary" data-go="csv">'+esc(c.exportCsv)+'</button><button class="secondary" data-go="revisit">'+esc(c.explore)+'</button></div><p class="muted">'+esc(c.privacy)+'</p></div>'}
-function render(){document.documentElement.lang=lang==='pt'?'pt-BR':lang;document.title=t().title+' | UpNext Care';document.getElementById('back').textContent=t().back;document.getElementById('back').href='/?lang='+lang+'#programs';document.getElementById('portrait').href='/life-portrait/?lang='+lang;root.innerHTML=view==='landing'?landing():!user?gate():view==='module'?moduleView():summary()}
+function render(){document.documentElement.lang=lang==='pt'?'pt-BR':lang;document.title=t().title+' | UpNext Care';document.getElementById('back').textContent=t().back;document.getElementById('back').href='/?lang='+lang+'#programs';document.getElementById('portrait').href='/life-portrait/?lang='+lang;root.innerHTML=view==='landing'?landing():!user?gate():view==='module'?moduleView():summary();updateSyncIndicator()}
 sel.addEventListener('change',e=>{lang=e.target.value;localStorage.setItem('upnext-language',lang);history.replaceState(null,'','?lang='+lang);render()});
 root.addEventListener('click',async e=>{const btn=e.target.closest('[data-step],[data-go]');if(!btn)return;const n=btn.dataset.step,go=btn.dataset.go;if(n!==undefined){step(+n);return}if(go==='start'){view=user?'module':'gate';render()}if(go==='prev')step(Math.max(0,idx-1));if(go==='next'){if(idx===5){view='report';render();window.scrollTo(0,0)}else step(idx+1)}if(go==='revisit')step(0);if(go==='csv')downloadCsv();if(go==='copy'){const value=reportText();try{await navigator.clipboard.writeText(value);btn.textContent='✓ '+t().copy}catch(e){const a=document.createElement('textarea');a.value=value;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}}});
 root.addEventListener('input',e=>{const el=e.target;if(el.matches('[data-score]')){state.scores[idx]=+el.value;document.getElementById('score').textContent=el.value+'/10'}else if(el.matches('[data-answer]'))state.answers[idx+':'+el.dataset.answer]=el.value;else if(el.matches('[data-action]'))state.actions[idx]=el.value;else if(el.matches('[data-review]'))state.review=el.value;save()});
-root.addEventListener('change',e=>{if(e.target.matches('[data-done]'))state.done[idx]=e.target.checked;if(e.target.matches('[data-priority]'))state.priority=+e.target.value;if(e.target.matches('[data-cycle]'))state.cycle=+e.target.value;save()});
-onAuthStateChanged(auth,u=>{user=u&&(!u.email||u.emailVerified||u.providerData.some(p=>p.providerId==='google.com'))?u:null;if(user)load();render()});render();
+root.addEventListener('change',e=>{if(e.target.matches('[data-consent]')){state.centralConsent=e.target.checked;syncStatus='local';if(state.centralConsent)syncCentral();else updateSyncIndicator()}if(e.target.matches('[data-done]'))state.done[idx]=e.target.checked;if(e.target.matches('[data-priority]'))state.priority=+e.target.value;if(e.target.matches('[data-cycle]'))state.cycle=+e.target.value;save()});
+onAuthStateChanged(auth,u=>{user=u&&(!u.email||u.emailVerified||u.providerData.some(p=>p.providerId==='google.com'))?u:null;if(user){load();loadCentral().then(()=>{if(view!=='landing')render()})}render()});render();
