@@ -32,8 +32,28 @@ async function loadCentral(){
   }
  }catch(e){syncStatus='error';}
 }
+async function syncToGoogleSheet(){
+ const endpoint=window.UPNEXT_BUILD_YOURSELF_SHEETS_ENDPOINT;
+ if(!endpoint||!user||!state.centralConsent)return;
+ try{
+  const token=await user.getIdToken();
+  const scores=state.scores,done=state.done;
+  const startedModules=Object.keys(scores).length;
+  const completedExperiments=Object.values(done).filter(Boolean).length;
+  await fetch(endpoint,{
+   method:'POST',mode:'no-cors',
+   headers:{'Content-Type':'text/plain;charset=utf-8'},
+   body:JSON.stringify({type:'build_yourself_sync',idToken:token,consent:true,
+    language:lang,scores,done,startedModules,completedModules:startedModules,
+    completedExperiments,priority:all.en.modules[state.priority]?.[0]||'',
+    cycle:state.cycle})
+  });
+  // An opaque no-cors response does NOT prove that Google Sheets accepted the update.
+ }catch(e){console.warn('Google Sheets sync request could not be sent.');}
+}
 async function syncCentral(){
  if(!user||!state.centralConsent)return;
+ syncToGoogleSheet();
  syncStatus='saving';updateSyncIndicator();
  try{
   await setDoc(doc(db,'users',user.uid,'build-yourself','progress'),{
