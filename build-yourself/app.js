@@ -8,7 +8,7 @@ const empty=()=>({scores:{},answers:{},actions:{},done:{},priority:0,cycle:30,re
 let state=empty();
 const root=document.getElementById('app'),sel=document.getElementById('language');
 sel.value=lang;
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;':'&quot;',"'":'&#39;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const t=()=>all[lang];
 const key=()=>user?'upnext-build-yourself:'+user.uid:null;
 function load(){try{state={...empty(),...JSON.parse(localStorage.getItem(key())||'{}')}}catch(e){state=empty()}}
