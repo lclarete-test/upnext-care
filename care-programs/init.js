@@ -5,4 +5,6 @@ document.getElementById('back-programs').textContent=ui.programs;
 document.getElementById('back-programs').href='/?lang='+language+'#programs';
 document.getElementById('dpp-link').href='/dpp/?lang='+language;
 document.getElementById('language').onchange=e=>{const url=new URL(location.href);url.searchParams.set('lang',e.target.value);location.href=url.href;};
+const sharedRenderAccount=renderAccount;
+renderAccount=function(){sharedRenderAccount();const label=main.querySelector('.account-shell .eyebrow');if(label)label.textContent='UpNext Care';};
 render();
