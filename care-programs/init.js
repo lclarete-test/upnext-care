@@ -1,0 +1,8 @@
+Object.assign(ACCOUNT_COPY[language],{intro:ui.account,signupIntro:ui.signup,privacy:ui.privacy});
+document.getElementById('language').value=language;
+document.getElementById('language-label').textContent=ui.language;
+document.getElementById('back-programs').textContent=ui.programs;
+document.getElementById('back-programs').href='/?lang='+language+'#programs';
+document.getElementById('dpp-link').href='/dpp/?lang='+language;
+document.getElementById('language').onchange=e=>{const url=new URL(location.href);url.searchParams.set('lang',e.target.value);location.href=url.href;};
+render();
