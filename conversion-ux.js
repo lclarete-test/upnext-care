@@ -13,12 +13,12 @@ const mountConversionUX = () => {
   style.textContent = `.conversion-actions{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0}.conversion-link{display:inline-flex;justify-content:center;align-items:center;min-height:44px;padding:11px 18px;background:#087b6c;color:white!important;border:1px solid #087b6c;border-radius:8px;font:600 15px/1.4 Arial,sans-serif;text-decoration:none}.conversion-link.secondary{background:white;color:#087261!important}.conversion-news,.conversion-preview{padding:28px;border:1px solid #c7dfd7;border-radius:14px;background:#f5faf8;margin:28px auto;max-width:900px;color:#142744}.conversion-news h2,.conversion-preview h2{font-size:26px;line-height:1.2;letter-spacing:-.5px;margin:0 0 14px}.conversion-news form{display:flex;gap:10px;flex-wrap:wrap}.conversion-news input{flex:1;min-width:0;width:100%;padding:13px;border:1px solid #8da99e;border-radius:8px;font:inherit}.conversion-news button,.conversion-preview button{min-height:44px;padding:12px 16px;border:1px solid #8da99e;border-radius:8px;background:#fff;color:#142744;font:inherit;cursor:pointer}.conversion-news button[type=submit]{background:#087b6c;color:white}.conversion-note{font-size:13px;color:#42536d}.conversion-preview summary{cursor:pointer;font-weight:700;min-height:44px;padding:10px 0}.conversion-answers{display:grid;gap:10px}.conversion-preview [role=status]{padding:14px;border-left:3px solid #087b6c}.conversion-news :focus-visible,.conversion-preview :focus-visible{outline:3px solid #087261;outline-offset:3px}#account-access{scroll-margin-top:140px}@media(max-width:600px){.conversion-news,.conversion-preview{padding:20px}.conversion-news form{flex-direction:column}.conversion-actions a{flex:1;min-width:130px}.topbar .unified-header nav{flex-wrap:wrap!important;overflow:visible!important;gap:4px 14px!important}.topbar .unified-header nav a{min-height:40px!important}}`;
   document.head.append(style);
   const nav = document.querySelector('header nav');
-  if(nav && !path.startsWith('/programs/')) {
+  if(nav && !path.startsWith('/programs/') && !nav.querySelector('.unified-signin')) {
     for(const [label,mode] of [[t.signup,'signup'],[t.login,'login']]) {
       const a=document.createElement('a');a.href=account(mode);a.textContent=label;nav.append(a);
     }
   }
-  if(path==='/') {
+  if(path==='/' && !document.querySelector('.care-home-hero')) {
     document.querySelector('.hero h1').textContent=t.title;
     document.querySelector('.hero .lead').textContent=t.lead;
     const actions=document.querySelector('.hero .actions');
@@ -70,3 +70,4 @@ const mountConversionUX = () => {
   }
 };
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountConversionUX,{once:true});else mountConversionUX();
+
