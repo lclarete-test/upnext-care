@@ -11,6 +11,6 @@
  const label=document.getElementById('language-label');
  if(label)label.textContent={en:'Language',pt:'Idioma',es:'Idioma'}[lang];
  const brand=document.querySelector('.unified-brand');if(brand)brand.href='/?lang='+lang;
- const learn=document.querySelector('.unified-header nav a:last-child');
+ const learn=document.querySelector('.unified-header nav a[href="/learn/"]');
  if(learn)learn.href=lang==='en'?'/learn/':'/learn/'+lang+'/';
 })();

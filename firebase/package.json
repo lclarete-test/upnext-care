@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "firebase emulators:exec --only firestore --project demo-upnext-care \"node --test tests/access.test.mjs tests/hub-flow.test.mjs tests/public-nav.test.mjs\""
+    "test": "firebase emulators:exec --only firestore --project demo-upnext-care \"node --test tests/access.test.mjs tests/hub-flow.test.mjs tests/public-nav.test.mjs\"",
+    "test:editorial": "node --test tests/editorial.test.mjs tests/public-nav.test.mjs"
   },
   "devDependencies": {
     "firebase-tools": "15.36.0",
