@@ -1,0 +1,14 @@
+{
+  "name": "upnext-care-access-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore --project demo-upnext-care \"node --test tests/access.test.mjs tests/hub-flow.test.mjs\""
+  },
+  "devDependencies": {
+    "firebase-tools": "15.36.0",
+    "@firebase/rules-unit-testing": "6.0.0",
+    "firebase": "13.4.0",
+    "jsdom": "31.0.1"
+  }
+}

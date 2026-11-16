@@ -1,0 +1,108 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Existing DPP records remain private to their account.
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    function verified() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function ownsOrg(id) {
+      return verified() && get(/databases/$(database)/documents/careOrgs/$(id)).data.ownerUid == request.auth.uid;
+    }
+    function ownsCohort(id) {
+      return verified() && get(/databases/$(database)/documents/careCohorts/$(id)).data.ownerUid == request.auth.uid;
+    }
+    function enrolled(id) {
+      return verified() && get(/databases/$(database)/documents/careEnrollments/$(id + '_' + request.auth.uid)).data.status == 'active';
+    }
+    function shortText(s, max) { return s is string && s.size() > 0 && s.size() <= max; }
+    match /careOrgs/{id} {
+      allow read: if verified() && resource.data.ownerUid == request.auth.uid;
+      allow create: if verified() && request.resource.data.keys().hasOnly(['ownerUid','name','createdAt','updatedAt'])
+        && request.resource.data.ownerUid == request.auth.uid && shortText(request.resource.data.name, 120)
+        && request.resource.data.createdAt == request.time && request.resource.data.updatedAt == request.time;
+      allow update: if verified() && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','updatedAt'])
+        && shortText(request.resource.data.name, 120) && request.resource.data.updatedAt == request.time;
+    }
+    match /careCohorts/{id} {
+      allow read: if verified() && (resource.data.ownerUid == request.auth.uid || enrolled(id));
+      function validCohort(d) {
+        return d.keys().hasOnly(['ownerUid','orgId','title','program','language','startDate','status','lessons','createdAt','updatedAt'])
+          && shortText(d.title, 140) && shortText(d.program, 80) && d.language in ['en','es','pt']
+          && d.startDate is string && d.startDate.size() <= 10 && d.status in ['active','archived']
+          && d.lessons is map && d.lessons.size() <= 50 && d.updatedAt == request.time;
+      }
+      allow create: if verified() && request.resource.data.ownerUid == request.auth.uid
+        && ownsOrg(request.resource.data.orgId) && validCohort(request.resource.data) && request.resource.data.createdAt == request.time;
+      allow update: if verified() && resource.data.ownerUid == request.auth.uid && validCohort(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title','program','language','startDate','status','lessons','updatedAt']);
+      match /sessions/{sessionId} {
+        allow read: if ownsCohort(id) || enrolled(id);
+        allow create, update: if ownsCohort(id)
+          && request.resource.data.keys().hasOnly(['title','date','time','duration','meetingUrl','timezone','updatedAt'])
+          && shortText(request.resource.data.title,140) && request.resource.data.date is string && request.resource.data.date.size() == 10
+          && request.resource.data.time is string && request.resource.data.time.size() <= 5
+          && request.resource.data.duration is int && request.resource.data.duration > 0 && request.resource.data.duration <= 480
+          && request.resource.data.meetingUrl is string && request.resource.data.meetingUrl.size() <= 1000
+          && request.resource.data.timezone is string && request.resource.data.timezone.size() <= 100
+          && request.resource.data.updatedAt == request.time;
+      }
+      match /attendance/{attendanceId} {
+        allow read: if ownsCohort(id) || (verified() && resource.data.patientUid == request.auth.uid);
+        allow create, update: if ownsCohort(id)
+          && request.resource.data.keys().hasOnly(['patientUid','sessionId','status','updatedAt'])
+          && attendanceId == request.resource.data.sessionId + '_' + request.resource.data.patientUid
+          && request.resource.data.status in ['present','absent','excused'] && request.resource.data.updatedAt == request.time
+          && exists(/databases/$(database)/documents/careCohorts/$(id)/sessions/$(request.resource.data.sessionId))
+          && get(/databases/$(database)/documents/careEnrollments/$(id + '_' + request.resource.data.patientUid)).data.cohortId == id;
+      }
+    }
+    match /careInvitations/{id} {
+      allow get: if verified() && (resource.data.ownerUid == request.auth.uid || resource.data.email == request.auth.token.email.lower());
+      allow list: if verified() && resource.data.ownerUid == request.auth.uid;
+      allow create: if verified() && ownsCohort(request.resource.data.cohortId)
+        && request.resource.data.keys().hasOnly(['ownerUid','orgId','cohortId','cohortTitle','orgName','program','email','status','expiresAt','createdAt'])
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.orgId == get(/databases/$(database)/documents/careCohorts/$(request.resource.data.cohortId)).data.orgId
+        && shortText(request.resource.data.email,254) && request.resource.data.email == request.resource.data.email.lower()
+        && shortText(request.resource.data.cohortTitle,140) && shortText(request.resource.data.orgName,120) && shortText(request.resource.data.program,80)
+        && request.resource.data.status == 'pending' && request.resource.data.createdAt == request.time
+        && request.resource.data.expiresAt > request.time && request.resource.data.expiresAt <= request.time + duration.value(7,'d');
+      allow update: if verified() && resource.data.status == 'pending' && (
+        (resource.data.ownerUid == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) && request.resource.data.status == 'cancelled')
+        || (resource.data.email == request.auth.token.email.lower() && resource.data.expiresAt > request.time
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','acceptedBy','acceptedAt'])
+          && request.resource.data.status == 'accepted' && request.resource.data.acceptedBy == request.auth.uid && request.resource.data.acceptedAt == request.time
+          && getAfter(/databases/$(database)/documents/careEnrollments/$(resource.data.cohortId + '_' + request.auth.uid)).data.invitationId == id)
+      );
+    }
+    match /careEnrollments/{id} {
+      allow read: if verified() && (resource.data.ownerUid == request.auth.uid || resource.data.patientUid == request.auth.uid);
+      function invite() { return get(/databases/$(database)/documents/careInvitations/$(request.resource.data.invitationId)).data; }
+      allow create: if verified() && request.resource.data.keys().hasOnly(['ownerUid','orgId','cohortId','patientUid','patientLabel','invitationId','status','completedLessonIds','joinedAt','updatedAt'])
+        && request.resource.data.patientUid == request.auth.uid && id == request.resource.data.cohortId + '_' + request.auth.uid
+        && shortText(request.resource.data.patientLabel,120) && request.resource.data.status == 'active'
+        && request.resource.data.completedLessonIds == [] && request.resource.data.joinedAt == request.time && request.resource.data.updatedAt == request.time
+        && invite().email == request.auth.token.email.lower() && invite().expiresAt > request.time && invite().status == 'pending'
+        && request.resource.data.ownerUid == invite().ownerUid && request.resource.data.orgId == invite().orgId && request.resource.data.cohortId == invite().cohortId
+        && getAfter(/databases/$(database)/documents/careInvitations/$(request.resource.data.invitationId)).data.acceptedBy == request.auth.uid
+        && getAfter(/databases/$(database)/documents/careInvitations/$(request.resource.data.invitationId)).data.status == 'accepted';
+      allow update: if verified() && request.resource.data.updatedAt == request.time && (
+        (resource.data.ownerUid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','updatedAt']) && request.resource.data.status in ['active','paused','withdrawn'])
+        || (resource.data.patientUid == request.auth.uid && (
+          (resource.data.status == 'active' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['completedLessonIds','updatedAt'])
+            && request.resource.data.completedLessonIds is list && request.resource.data.completedLessonIds.size() <= 50
+            && request.resource.data.completedLessonIds.hasOnly(get(/databases/$(database)/documents/careCohorts/$(resource.data.cohortId)).data.lessons.keys()))
+          || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','updatedAt']) && request.resource.data.status == 'withdrawn')
+        ))
+      );
+    }
+  }
+}
