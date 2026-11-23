@@ -11,13 +11,13 @@
 <link rel="icon" href="/upnext-logo.svg">
 <title>Ancestry: um mapa da sua história</title>
 <meta name="description" content="Um mapa para explorar sua família, guardar lembranças e perceber o que você reconhece em si.">
-<link rel="stylesheet" href="style.css?v=20261123-portrait">
-<script src="strings.js?v=20261123-portrait" defer></script>
-<script src="geo.js?v=20261123-portrait" defer></script>
-<script src="app.js?v=20261123-portrait" defer></script>
+<link rel="stylesheet" href="style.css?v=20261123-tree">
+<script src="strings.js?v=20261123-tree" defer></script>
+<script src="geo.js?v=20261123-tree" defer></script>
+<script src="app.js?v=20261123-tree" defer></script>
 </head>
 <body class="upnext-identity upnext-ancestry">
-<a class="ancestry-skip" href="#main" data-t="guided">Perguntas guiadas</a>
+<a class="ancestry-skip" href="#main" data-t="skip">Pular para a árvore</a>
 <header class="masthead topbar">
  <div class="bar">
   <a class="brand upnext-brand" href="/" aria-label="Página inicial do UpNext Care" data-aria="home"><img src="/upnext-logo.svg" alt="UpNext Care"></a>
@@ -26,29 +26,26 @@
  </div>
 </header>
 <main id="main" tabindex="-1">
- <nav id="notebook-nav" class="journey-nav" aria-label="Ancestry" hidden>
+ <nav id="notebook-nav" class="journey-nav" aria-label="Ancestry">
+  <button type="button" id="show-map" data-t="map" aria-pressed="true">Minha árvore</button>
   <button type="button" id="show-reflections" data-t="myPortrait">Meu retrato</button>
-  <button type="button" id="show-map" data-t="editor">Editar na árvore</button>
-  <button type="button" id="start-guided" data-t="newQuestion">Nova história</button>
  </nav>
- <section id="wizard-view" class="wizard" aria-labelledby="question-title">
-  <div class="wizard-intro"><p class="kicker" data-t="welcomeTag">CADERNO DE FAMÍLIA</p><strong id="wizard-heading" data-t="startTitle">Comece por você</strong><p id="wizard-context" data-t="firstIntro">Escolha uma pessoa e responda uma pergunta por vez. Suas respostas viram um retrato de vocês.</p></div>
+ <section id="wizard-view" class="wizard person-sheet" aria-labelledby="question-title" hidden>
+  <div class="wizard-intro"><p class="kicker" data-t="welcomeTag">CADERNO DE FAMÍLIA</p></div>
   <div class="question-paper">
-   <div class="journey-status"><span id="step-count"></span><ol id="milestones"></ol></div>
-   <progress id="journey-progress" max="8" value="1" aria-labelledby="step-count"></progress>
    <div class="question-body">
-    <h1 tabindex="-1" id="question-title">De quem é a história que vamos contar?</h1>
+    <h1 tabindex="-1" id="question-title"></h1>
     <p id="question-help"></p>
     <div id="question-content"></div>
     <p id="save-error" role="alert" hidden></p>
    </div>
-   <div class="wizard-actions"><button type="button" class="secondary" id="wizard-back" data-t="previous">Voltar</button><button type="button" class="skip-option" id="wizard-skip" data-t="skipStep">Pular pergunta</button><button type="button" class="primary" id="wizard-next" data-t="continue">Continuar</button></div>
-   <button type="button" class="skip-option wizard-cancel" id="wizard-exit" data-t="quit" hidden>Sair das perguntas</button>
+   <div class="wizard-actions"><button type="button" class="secondary" id="wizard-exit" data-t="closeSheet">Voltar à árvore</button><button type="button" class="primary" id="wizard-next" data-t="saveBack">Salvar e voltar à árvore</button></div>
   </div>
  </section>
- <section id="map-view" class="paper" aria-labelledby="map-title" hidden>
-  <div class="section-head"><div><h2 id="map-title" tabindex="-1" data-t="treeTitle">Sua árvore</h2><p data-t="treeIntro">Toque em um cartão para escrever sobre alguém. Todos os campos são opcionais.</p></div><span class="count" id="count" aria-live="polite"></span></div>
+ <section id="map-view" class="paper family-tree-view" aria-labelledby="map-title">
+  <div class="section-head"><div><h1 id="map-title" tabindex="-1" data-t="treeTitle">Sua árvore</h1><p data-t="nodeIntro">Toque em uma pessoa para abrir só a ficha dela. Você pode preencher no seu ritmo.</p></div><span class="count" id="count" aria-live="polite"></span></div>
   <div class="map" id="tree" aria-label="Árvore genealógica" data-aria="tree" role="group"></div>
+  <div class="descendant-actions"><button class="secondary" id="add-child" type="button" aria-expanded="false" aria-controls="child-options" data-t="addChild">Adicionar filha ou filho</button><div id="child-options" hidden aria-label="Vínculo com você" data-aria="newChildOptions"><button class="secondary" type="button" id="add-daughter" data-t="daughter">Filha</button><button class="secondary" type="button" id="add-son" data-t="son">Filho</button><button class="secondary" type="button" id="add-descendant" data-t="descendant">Descendente</button></div></div>
   <p class="tip" id="tip">Os botões + abrem os ramos dos bisavós.</p>
  </section>
  <section id="reflection-view" class="portrait" aria-labelledby="reflection-title" hidden>
@@ -57,7 +54,7 @@
   <div id="profile-result"></div>
   <div id="common-result"></div>
   <div id="reflections" class="reflections"></div>
-  <div class="portrait-actions"><button type="button" id="add-family" class="primary" data-t="addFamily">Adicionar alguém da família</button><button type="button" id="edit-self" class="secondary" data-t="editProfile">Atualizar meu perfil</button></div>
+  <div class="portrait-actions"><button type="button" id="add-family" class="primary" data-t="editor">Editar na árvore</button><button type="button" id="edit-self" class="secondary" data-t="editProfile">Atualizar meu perfil</button></div>
  </section>
  <footer><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 10V7a6 6 0 0 1 12 0v3M4 10h16v12H4zM12 14v4"/></svg><p data-t="privacy">As anotações ficam só neste navegador. Elas não são enviadas ao site nem sincronizadas entre dispositivos.</p></footer>
  <p id="status" class="sr" role="status"></p>

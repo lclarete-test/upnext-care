@@ -12,7 +12,7 @@ document.querySelector('.masthead .brand').href='/?lang='+locale;
 $('wellbeing-return').href='/?lang='+locale+'#wellbeing';
 $('ancestry-lang').value=locale;
 $('ancestry-lang').addEventListener('change',event=>{
- if(mode==='wizard'&&draft&&stepIndex>0)preserveDraft();
+ if(mode==='sheet'&&draft)preserveSheet();
  const next=event.target.value;
  try{localStorage.setItem('ancestry-language-v1',next);}catch{}
  const url=new URL(location.href);url.searchParams.set('lang',next);
@@ -132,6 +132,7 @@ function rowButton(person){
  const {id,role,level,col,span,side,note}=person;
  const record=records[id]||{};
  const node=el('div',['node',level,side].filter(Boolean).join(' '));
+ if(level==='child')node.style.gridRow=5+Math.floor(person.order/2);
  node.style.gridColumn=col+' / span '+span;
  const button=el('button','person');
  button.type='button';
@@ -156,7 +157,7 @@ function rowButton(person){
    renderTree();
    nodes.get(id).toggle.focus({preventScroll:true});
    const child=nodes.get(id+'m');
-   if(child&&child.button.getBoundingClientRect().bottom>innerHeight-10){
+   if(child&&child.button.getBoundingClientRect().top<10){
     child.button.scrollIntoView({block:'nearest'});
    }
   });
@@ -172,10 +173,11 @@ function renderTree(){
  edges.classList.add('edges');
  edges.setAttribute('aria-hidden','true');
  tree.append(edges);
- for(const p of people.values()){
-  if(p.level==='greatgrandparent'&&scopes[p.side]!==p.parent) continue;
-  tree.append(rowButton(p));
- }
+ const ordering={greatgrandparent:0,grandparent:1,parent:2,self:3,child:4};
+ const visible=[...people.values()].filter(p=>p.level!=='greatgrandparent'||scopes[p.side]===p.parent).sort((a,b)=>ordering[a.level]-ordering[b.level]);
+ for(const p of visible)tree.append(rowButton(p));
+ $('add-child').disabled=descendants().length>=6;
+ $('add-child').title=$('add-child').disabled?t('childCap'):'';
  const total=Object.keys(records).filter(id=>people.has(id)).length;
  $('count').textContent=total===0?t('zero'):total===1?t('one'):t('count',{n:total});
  $('tip').textContent=t(Object.values(scopes).some(Boolean)?'tipOpen':'tip');
@@ -191,8 +193,9 @@ function drawEdges(){
   const parent=nodes.get(p.parent);
   const a=(p.level==='greatgrandparent'?parent.toggle:parent.button).getBoundingClientRect();
   const b=item.button.getBoundingClientRect();
-  const x=a.left+a.width/2-box.left,y=a.bottom-box.top;
-  const x2=b.left+b.width/2-box.left,y2=b.top-box.top,mid=(y+y2)/2;
+  const below=p.level==='child';
+  const x=a.left+a.width/2-box.left,y=(below?a.bottom:a.top)-box.top;
+  const x2=b.left+b.width/2-box.left,y2=(below?b.top:b.bottom)-box.top,mid=(y+y2)/2;
   const line=document.createElementNS(svgNS,'path');
   line.classList.add(p.side);
   line.setAttribute('d','M '+x+' '+y+' C '+x+' '+mid+', '+x2+' '+mid+', '+x2+' '+y2);
@@ -201,19 +204,30 @@ function drawEdges(){
 }
 if('ResizeObserver' in window) new ResizeObserver(drawEdges).observe(tree);
 window.addEventListener('resize',drawEdges);
-const steps=['who','birth','past','current','traits','memory','traditions','recognition'];
 const choices={
  traits:['t_curious','t_caring','t_persistent','t_humor','t_independent','t_practical','t_creative','t_reserved','t_generous','t_courage'],
  memory:['m_story','m_food','m_trip','m_ritual','m_music','m_small'],
  traditions:['r_celebration','r_recipes','r_prayer','r_faith','r_community','r_story'],
  recognition:['c_way','c_value','c_custom','c_craft','c_perspective','c_change']
 };
-const draftKey='ancestry-guided-draft-v1', doneKey='ancestry-guided-complete-v1';
-let mode='wizard', selected='self', stepIndex=0, draft=null, whoOnly=false, hasFinished=false;
-try{hasFinished=localStorage.getItem(doneKey)==='yes';}catch{}
+const draftKey='ancestry-node-sheet-v1';
+let mode='tree', selected='self', draft=null, placeReaders=[], sheetReturn='tree';
+const validRoles=['daughter','son','descendant'];
+function descendants(){return [...people.values()].filter(p=>p.level==='child');}
+function loadDescendants(){
+ for(const p of descendants())people.delete(p.id);
+ const children=Object.entries(records).filter(([id,r])=>/^child[1-6]$/.test(id)&&validRoles.includes(r?.childRole)).sort(([a],[b])=>a.localeCompare(b));
+ children.forEach(([id,r],i)=>{
+  const col=(i===children.length-1&&i%2===0)?2:(i%2===0?1:3);
+  people.set(id,{id,role:t(r.childRole),level:'child',parent:'self',side:'children',col,span:2,order:i});
+ });
+}
+function preserveSheet(){try{sessionStorage.setItem(draftKey,JSON.stringify({draft,selected,sheetReturn}));}catch{}}
+function clearSheet(){try{sessionStorage.removeItem(draftKey);}catch{}}
 function cloneRecord(value){
  const rec=value||{}, next={};
  if(typeof rec.name==='string')next.name=rec.name;
+ if(validRoles.includes(rec.childRole))next.childRole=rec.childRole;
  for(const key of Object.keys(choices)){
   if(typeof rec[key]==='string')next[key]=rec[key];
   const tokens=rec.picks?.[key];
@@ -227,80 +241,12 @@ function cloneRecord(value){
 }
 function pickNames(rec,key){return (rec?.picks?.[key]||[]).filter(x=>choices[key]?.includes(x)).map(x=>t(x));}
 function pickText(rec,key){return [...pickNames(rec,key),rec?.[key]].filter(Boolean).join(' · ');}
-function preserveDraft(){try{sessionStorage.setItem(draftKey,JSON.stringify({draft,stepIndex,selected,whoOnly}));}catch{}}
-function clearDraft(){try{sessionStorage.removeItem(draftKey);}catch{}}
 function elButton(text,cls,action){
  const b=el('button',cls,text);b.type='button';b.addEventListener('click',action);return b;
 }
-function setView(view,focus=true){
- mode=view;
- $('wizard-view').hidden=view!=='wizard';
- $('map-view').hidden=view!=='tree';
- $('reflection-view').hidden=view!=='portrait';
- $('notebook-nav').hidden=!Object.keys(records).length&&!hasFinished;
- $('show-reflections').setAttribute('aria-pressed',String(view==='portrait'));
- $('show-map').setAttribute('aria-pressed',String(view==='tree'));
- $('start-guided').setAttribute('aria-pressed',String(view==='wizard'));
- if(view==='portrait')renderPortrait();
- if(view==='tree')requestAnimationFrame(drawEdges);
- if(focus)(view==='portrait'?$('reflection-title'):view==='tree'?$('map-title'):$('question-title')).focus();
-}
-function startWizard(person=null,familyOnly=false){
- whoOnly=familyOnly;
- selected=person||(familyOnly?'mother':'self');
- stepIndex=person?1:0;
- draft=cloneRecord(records[selected]);
- $('wizard-heading').textContent=t(person&&person!=='self'?'guided':familyOnly?'addFamily':'startTitle');
- renderQuestion(false);setView('wizard');
-}
-function openEditor(id){startWizard(id);}
-function whoName(){
- if(draft?.name?.trim())return draft.name.trim();
- const person=people.get(selected);
- if(locale==='pt'){
-  const feminine=['mother','mm','fm'].includes(selected)||(selected.length===3&&selected.endsWith('m'));
-  return (feminine?'sua ':'seu ')+person.role.toLocaleLowerCase(locale);
- }
- if(locale==='es')return 'tu '+person.role.toLocaleLowerCase(locale);
- return 'your '+person.role.toLocaleLowerCase(locale);
-}
-function setSelection(id){
- if(selected===id)return;
- selected=id;draft=cloneRecord(records[id]);renderQuestion(false);
- document.querySelector(`[data-who="${id}"]`)?.focus({preventScroll:true});
-}
-function drawWho(host){
- const group=el('div','who-grid');
- function tile(person){
-  const chosen=selected===person.id;
-  const label=records[person.id]?.name?.trim();
-  const tile=elButton(label||person.role,'choice person-choice',()=>setSelection(person.id));
-  tile.dataset.who=person.id;tile.setAttribute('aria-pressed',chosen);
-  if(label||person.note)tile.append(el('span','choice-meta',person.note||person.role));
-  if(person.id==='self')tile.classList.add('self-choice');
-  return tile;
- }
- for(const person of [...people.values()].filter(p=>p.level==='self'||p.level==='parent')){
-  if(!whoOnly||person.id!=='self')group.append(tile(person));
- }
- host.append(group);
- const expanded=el('details','more-people');
- expanded.open=!['self','mother','father'].includes(selected);
- expanded.append(el('summary','',t('other')));
- const relatives=el('div','who-grid relatives');
- for(const person of [...people.values()].filter(p=>p.level==='grandparent'||p.level==='greatgrandparent'))relatives.append(tile(person));
- expanded.append(relatives);host.append(expanded);
- const details=el('details','optional-note');
- const summary=el('summary','',t('includeName'));
- const label=el('label','sr',t('nameShort'));label.htmlFor='profile-name';
- const input=el('input');input.id=label.htmlFor;input.maxLength=80;input.autocomplete='off';input.value=draft.name||'';input.placeholder=t('nameShort');
- input.addEventListener('input',()=>{draft.name=input.value;});
- details.open=Boolean(draft.name);details.append(summary,label,input);host.append(details);
-}
-let readCity=null;
 function drawPlaces(host,kind){
- const label=el('label','search-label',t('cityLabel'));label.htmlFor='city-search';
- const field=el('input','city-search');field.type='search';field.id='city-search';field.maxLength=90;field.autocomplete='off';field.placeholder=t('cityHint');
+ const label=el('label','search-label',t('cityLabel'));label.htmlFor='city-search-'+kind;
+ const field=el('input','city-search');field.type='search';field.id=label.htmlFor;field.maxLength=90;field.autocomplete='off';field.placeholder=t('cityHint');
  const saved=el('ul','chosen-places');const matches=el('ul','city-matches');
  const status=el('span','sr');status.setAttribute('role','status');
  function candidates(value){
@@ -349,7 +295,7 @@ function drawPlaces(host,kind){
   if(city){put(labelCity(city),true);return;}
   put(name,Boolean(lookupPlace(name)));
  }
- readCity=commitInput;
+ placeReaders.push(commitInput);
  field.addEventListener('input',paint);
  field.addEventListener('keydown',e=>{
   if(e.key==='Enter'){e.preventDefault();commitInput();}
@@ -376,7 +322,7 @@ function drawChoices(host,key){
  }
  const details=el('details','optional-note');details.open=!!draft[key];
  const summary=el('summary','',t('addDetail'));
- const label=el('label','sr',t('detail'));label.htmlFor='note-detail';
+ const label=el('label','sr',t('detail'));label.htmlFor='note-detail-'+key;
  const input=el('textarea');input.id=label.htmlFor;
  input.rows=2;input.maxLength=Math.max(220,(draft[key]||'').length);input.value=draft[key]||'';input.placeholder=t('detail');
  input.addEventListener('input',()=>{draft[key]=input.value;message.textContent='';});
@@ -391,61 +337,90 @@ function drawChoices(host,key){
   }),message);
  }
 }
-function renderQuestion(moveFocus=true){
- const key=steps[stepIndex], self=selected==='self', who=whoName();
- const host=$('question-content');host.replaceChildren();readCity=null;
- $('save-error').hidden=true;
- $('step-count').textContent=t('stepNote',{current:stepIndex+1,total:steps.length});
- $('journey-progress').value=stepIndex+1;
- const milestones=$('milestones');milestones.replaceChildren();
- const progressIndex=stepIndex===0?0:stepIndex<4?1:2;
- ['chapterWho','chapterPlace','chapterStory'].forEach((ch,i)=>{
-  const li=el('li',i===progressIndex?'milestone active':i<progressIndex?'milestone done':'milestone',t(ch));
-  if(i===progressIndex)li.setAttribute('aria-current','step');
-  milestones.append(li);
- });
- let promptKey,helpKey;
- if(key==='who'){promptKey='whoTitle';helpKey='whoHelp';drawWho(host);}
- else if(['birth','past','current'].includes(key)){promptKey=key+(self?'Self':'Q');helpKey='cityHelp';drawPlaces(host,key);}
- else{
-  const k={traits:'traits',memory:'memo',traditions:'trad',recognition:'carry'}[key];promptKey=k+(self?'Self':'Q');helpKey=key==='traditions'?'privateChoice':'tapMany';drawChoices(host,key);
- }
- $('question-title').textContent=t(promptKey,{who});$('question-help').textContent=t(helpKey);
- $('wizard-back').hidden=stepIndex===0;
- $('wizard-skip').hidden=stepIndex===0;
- $('wizard-exit').hidden=!Object.keys(records).length&&!hasFinished;
- $('wizard-context').hidden=stepIndex>0;
- $('wizard-next').textContent=t(stepIndex===steps.length-1?'finish':'continue');
- if(moveFocus)$('question-title').focus();
+function titleFor(id){
+ const p=people.get(id);
+ const role=validRoles.includes(draft?.childRole)?t(draft.childRole):p?.role||t('self');
+ return (draft?.name?.trim()?draft.name.trim()+' · ':'')+role+(p?.note?' · '+p.note:'');
 }
-function savePortrait(){
- const next={...records};
- const rec=cloneRecord(draft);
+function setView(view,focus=true){
+ mode=view;
+ $('wizard-view').hidden=view!=='sheet';
+ $('map-view').hidden=view!=='tree';
+ $('reflection-view').hidden=view!=='portrait';
+ $('show-map').setAttribute('aria-pressed',String(view==='tree'));
+ $('show-reflections').setAttribute('aria-pressed',String(view==='portrait'));
+ if(view==='portrait')renderPortrait();
+ if(view==='tree')requestAnimationFrame(drawEdges);
+ if(focus)(view==='portrait'?$('reflection-title'):view==='tree'?$('map-title'):$('question-title')).focus();
+}
+function drawSheet(){
+ const host=$('question-content');host.replaceChildren();placeReaders=[];
+ $('save-error').hidden=true;
+ $('question-title').textContent=t('personCard',{who:titleFor(selected)});
+ $('question-help').textContent=t('sheetHelp');
+ const label=el('label','search-label',t('nameShort'));label.htmlFor='profile-name';
+ const name=el('input');name.id=label.htmlFor;name.maxLength=80;name.autocomplete='off';name.value=draft.name||'';name.placeholder=t('nameShort');
+ name.addEventListener('input',()=>{draft.name=name.value;});
+ host.append(label,name);
+ const birth=el('div','sheet-place primary-place');birth.append(el('h2','',t('birth')));
+ const hint=el('p','help-note',t('cityHelp'));birth.append(hint);
+ drawPlaces(birth,'birth');host.append(birth);
+ const sections=[
+  ['past','past','place'],['current','current','place'],
+  ['traits','traits','choice'],['memory','memory','choice'],['traditions','traditions','choice'],
+  ['recognition',selected==='self'?'legacy':'recognize','choice']
+ ];
+ for(const [key,label,kind] of sections){
+  const panel=el('details','sheet-panel');
+  panel.append(el('summary','',t(label)));
+  if(kind==='place')drawPlaces(panel,key);
+  else drawChoices(panel,key);
+  host.append(panel);
+ }
+}
+function openEditor(id,trigger=null,childRole=null){
+ if(!people.has(id)&&!validRoles.includes(childRole))return;
+ sheetReturn='tree';
+ selected=id;draft=cloneRecord(records[id]);
+ if(childRole)draft.childRole=childRole;
+ drawSheet();setView('sheet');
+}
+function closeSheet(focusNode=true){
+ clearSheet();draft=null;
+ setView('tree',!focusNode);
+ if(focusNode)(nodes.get(selected)?.button||$('add-child')).focus();
+}
+function saveSheet(){
+ for(const commit of placeReaders)commit();
+ const next={...records}, rec=cloneRecord(draft);
  for(const key of ['name',...Object.keys(choices)]){
   if(rec[key]?.trim())rec[key]=rec[key].trim();else delete rec[key];
   if(rec.picks&&!rec.picks[key]?.length)delete rec.picks[key];
  }
  if(rec.picks&&!Object.keys(rec.picks).length)delete rec.picks;
  if(Object.keys(rec).length)next[selected]=rec;else delete next[selected];
- try{localStorage.setItem(storageKey,JSON.stringify(next));localStorage.setItem(doneKey,'yes');}
+ try{localStorage.setItem(storageKey,JSON.stringify(next));}
  catch{$('save-error').textContent=t('saveError');$('save-error').hidden=false;return;}
- records=next;hasFinished=true;clearDraft();renderTree();setView('portrait');
- $('status').textContent=t('savedNotice');
+ records=next;loadDescendants();renderTree();closeSheet();
+ $('status').textContent=t('entrySaved');
 }
-function advance(skip=false){
- if(stepIndex===steps.length-1){savePortrait();return;}
- if(!skip&&readCity)readCity();
- stepIndex++;renderQuestion();
+$('wizard-next').addEventListener('click',saveSheet);
+$('wizard-exit').addEventListener('click',()=>closeSheet());
+$('show-map').addEventListener('click',()=>{clearSheet();setView('tree');});
+$('show-reflections').addEventListener('click',()=>{clearSheet();setView('portrait');});
+$('add-family').addEventListener('click',()=>setView('tree'));
+$('edit-self').addEventListener('click',()=>openEditor('self'));
+$('add-child').addEventListener('click',()=>{
+ const open=$('child-options').hidden;
+ $('child-options').hidden=!open;$('add-child').setAttribute('aria-expanded',String(open));
+});
+for(const role of validRoles){
+ $('add-'+role).addEventListener('click',()=>{
+  const id=Array.from({length:6},(_,i)=>'child'+(i+1)).find(k=>!people.has(k));
+  if(!id)return;
+  $('child-options').hidden=true;$('add-child').setAttribute('aria-expanded','false');openEditor(id,null,role);
+ });
 }
-$('wizard-next').addEventListener('click',()=>advance());
-$('wizard-skip').addEventListener('click',()=>advance(true));
-$('wizard-back').addEventListener('click',()=>{if(stepIndex>0)stepIndex--;renderQuestion();});
-$('wizard-exit').addEventListener('click',()=>{clearDraft();setView('portrait');});
-$('show-map').addEventListener('click',()=>setView('tree'));
-$('show-reflections').addEventListener('click',()=>setView('portrait'));
-$('start-guided').addEventListener('click',()=>startWizard());
-$('add-family').addEventListener('click',()=>startWizard(null,true));
-$('edit-self').addEventListener('click',()=>startWizard('self'));
 function makeFact(rec,key,labelKey){
  const text=pickText(rec,key);
  if(!text)return null;
@@ -484,12 +459,12 @@ function renderPortrait(){
   }
   group.append(items);common.append(group);
  }
- const generations={parent:'kindParent',grandparent:'kindGrand',greatgrandparent:'kindGreat'};
- for(const side of ['mother','father']){
+ const generations={parent:'kindParent',grandparent:'kindGrand',greatgrandparent:'kindGreat',child:'familyDescendants'};
+ for(const side of ['mother','father','children']){
   const members=filled.filter(p=>p.side===side);
   if(!members.length)continue;
   const group=el('section','ancestry-result-group '+side);
-  group.append(el('h2','result-branch',t(side==='mother'?'material':'paternal')));
+  group.append(el('h2','result-branch',t(side==='mother'?'material':side==='father'?'paternal':'familyDescendants')));
   const timeline=el('ol','result-timeline');
   for(const person of members){
    const rec=records[person.id], item=el('li','reflection-item');
@@ -503,12 +478,10 @@ function renderPortrait(){
   group.append(timeline);list.append(group);
  }
 }
-renderTree();
-let savedDraft=null;
-try{savedDraft=JSON.parse(sessionStorage.getItem(draftKey)||'null');}catch{}
-clearDraft();
-if(savedDraft&&people.has(savedDraft.selected)&&Number.isInteger(savedDraft.stepIndex)&&savedDraft.stepIndex>0&&savedDraft.stepIndex<steps.length){
- selected=savedDraft.selected;draft=cloneRecord(savedDraft.draft);stepIndex=savedDraft.stepIndex;whoOnly=Boolean(savedDraft.whoOnly);
- renderQuestion(false);setView('wizard',false);
-}else if(Object.keys(records).length||hasFinished)setView('portrait',false);
-else{draft=cloneRecord(records.self);renderQuestion(false);setView('wizard',false);}
+loadDescendants();renderTree();
+let priorSheet=null;
+try{priorSheet=JSON.parse(sessionStorage.getItem(draftKey)||'null');}catch{}
+clearSheet();
+if(priorSheet&&(people.has(priorSheet.selected)||(/^child[1-6]$/.test(priorSheet.selected)&&validRoles.includes(priorSheet.draft?.childRole)))){
+ selected=priorSheet.selected;draft=cloneRecord(priorSheet.draft);drawSheet();setView('sheet',false);
+}else setView('tree',false);

@@ -194,3 +194,31 @@ body.upnext-ancestry{--page:var(--un-color-cream);--paper:var(--un-color-paper);
  .portrait-header{padding:13px 14px}
  .portrait-header h1{font-size:1.9rem}
 }
+
+/* UpNext family tree: generations above you, descendants below you. */
+.family-tree-view .section-head h1{margin:0 0 5px;font-size:clamp(1.85rem,5vw,2.8rem);letter-spacing:-.035em;color:var(--green)}
+.family-tree-view .map{min-height:0;gap:16px 7px}
+.family-tree-view .map:has(.greatgrandparent){padding-top:10px}
+.family-tree-view .node.greatgrandparent{grid-row:1}
+.family-tree-view .node.grandparent{grid-row:2;flex-direction:column-reverse;justify-content:flex-end}
+.family-tree-view .node.parent{grid-row:3}
+.family-tree-view .node.self{grid-row:4}
+.family-tree-view .node.self .person{width:min(100%,192px);margin-inline:auto}
+.family-tree-view .node.grandparent .expand{margin:-4px auto 1px}
+.family-tree-view .node.child .person{background:#f8eedf;border-color:#bb9565;color:#644621}
+.family-tree-view .edges .children{stroke:#a87a43}
+.family-tree-view .node .person{min-height:52px}
+.family-tree-view .node.self .person{min-height:65px}
+.descendant-actions{display:flex;justify-content:center;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 12px}
+#child-options{display:flex;justify-content:center;gap:5px;flex-wrap:wrap}
+.person-sheet{margin-top:10px}
+.person-sheet .wizard-actions{justify-content:space-between}
+.person-sheet .question-body h1{margin-bottom:5px}
+.sheet-place{margin:14px 0 10px;padding:11px 13px;border:1px solid var(--line);border-radius:12px;background:#f8faf5}
+.sheet-place h2{font-size:1.3rem;margin:0 0 3px}
+.sheet-place .help-note{margin-bottom:5px}
+.sheet-panel{border-top:1px solid var(--line);padding-bottom:4px}
+.sheet-panel summary{cursor:pointer;min-height:44px;padding:9px 0;font-weight:650;color:var(--green)}
+.sheet-panel[open]{padding-bottom:9px}
+.ancestry-result-group.children{--branch:#9b7048;background:#faf4e9}
+@media(min-width:660px){.family-tree-view .map{gap:21px 18px}.family-tree-view .node .person{min-height:62px}}
