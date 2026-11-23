@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#174c3c">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<link rel="canonical" href="https://upnextcare.com/ancestry/">
+<link rel="stylesheet" href="/design-system/site-theme.css?v=1.0.1">
+<link rel="icon" href="/upnext-logo.svg">
+<title>Ancestry: um mapa da sua história</title>
+<meta name="description" content="Um mapa para explorar sua família, guardar lembranças e perceber o que você reconhece em si.">
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+</head>
+<body class="upnext-identity upnext-ancestry">
+<a class="ancestry-skip" href="#main">Pular para a árvore</a>
+<header class="masthead topbar">
+ <div class="bar">
+  <a class="brand upnext-brand" href="/" aria-label="Página inicial do UpNext Care"><img src="/upnext-logo.svg" alt="UpNext Care"></a>
+  <nav aria-label="Navegação do UpNext Care"><a href="/patients/#wellbeing">Voltar ao bem-estar</a></nav>
+ </div>
+</header>
+<main id="main" tabindex="-1">
+ <section class="intro" aria-labelledby="title">
+  <p class="kicker">ANCESTRY · CADERNO DE FAMÍLIA</p>
+  <h1 id="title">Um mapa da sua história</h1>
+  <p>Comece por você. Explore quem veio antes e guarde o que quiser lembrar.</p>
+ </section>
+ <nav class="tabs" aria-label="Visões do mapa">
+  <button type="button" id="show-map" aria-pressed="true">Minha árvore</button>
+  <button type="button" id="show-reflections" aria-pressed="false">O que vejo em mim</button>
+ </nav>
+ <section id="map-view" class="paper" aria-labelledby="map-title">
+  <div class="section-head"><div><h2 id="map-title">Sua árvore</h2><p>Toque em um cartão para escrever sobre alguém. Todos os campos são opcionais.</p></div><span class="count" id="count" aria-live="polite"></span></div>
+  <div class="map" id="tree" aria-label="Árvore genealógica" role="group"></div>
+  <p class="tip" id="tip">Os botões <strong>+</strong> abrem os ramos dos bisavós.</p>
+ </section>
+ <section id="reflection-view" class="paper" aria-labelledby="reflection-title" hidden>
+  <div class="section-head"><div><h2 id="reflection-title" tabindex="-1">O que vejo em mim</h2><p>Releia o que você registrou. Você decide o que faz parte da sua história e o que quer levar adiante.</p></div></div>
+  <div id="reflections" class="reflections"></div>
+  <button type="button" id="edit-self" class="primary">Escrever sobre mim</button>
+ </section>
+ <footer><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 10V7a6 6 0 0 1 12 0v3M4 10h16v12H4zM12 14v4"/></svg><p>As anotações ficam só neste navegador. Elas não são enviadas ao site nem sincronizadas entre dispositivos.</p></footer>
+ <p id="status" class="sr" role="status"></p>
+</main>
+<dialog id="editor" aria-labelledby="editor-title">
+ <form id="entry">
+  <div class="editor-head"><div><p class="kicker">CADERNO DE FAMÍLIA</p><h2 id="editor-title"></h2></div><button type="button" id="close-editor" class="close" aria-label="Fechar ficha">×</button></div>
+  <p id="prompt" class="prompt"></p>
+  <div class="fields">
+   <label for="person-name">Nome ou apelido <span>opcional</span></label><input id="person-name" maxlength="80" autocomplete="off" placeholder="Como você chama essa pessoa?">
+   <label for="traits">Traços e jeitos <span>opcional</span></label><textarea id="traits" rows="2" maxlength="2000" placeholder="Um jeito de falar, um hábito, um valor…"></textarea>
+   <label for="memory">Lembranças <span>opcional</span></label><textarea id="memory" rows="2" maxlength="2000" placeholder="Uma cena, uma história ou algo que ouviu contar…"></textarea>
+   <label for="recognition"><span id="recognition-label" class="field-title">O que reconheço em mim</span> <span>opcional</span></label><textarea id="recognition" rows="2" maxlength="2000" placeholder="O que disso aparece em você?"></textarea>
+  </div>
+  <p class="message" id="save-error" role="alert" hidden></p>
+  <div class="actions"><button id="cancel" type="button" class="secondary">Cancelar</button><button type="submit" class="primary">Salvar ficha</button></div>
+ </form>
+</dialog>
+</body>
+</html>
