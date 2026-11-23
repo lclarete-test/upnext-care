@@ -12,15 +12,15 @@ document.querySelector('.masthead .brand').href='/?lang='+locale;
 $('wellbeing-return').href='/?lang='+locale+'#wellbeing';
 $('ancestry-lang').value=locale;
 $('ancestry-lang').addEventListener('change',event=>{
+ if(mode==='wizard'&&draft&&stepIndex>0)preserveDraft();
  const next=event.target.value;
  try{localStorage.setItem('ancestry-language-v1',next);}catch{}
  const url=new URL(location.href);url.searchParams.set('lang',next);
  location.assign(url);
 });
-const tree=$('tree'), dialog=$('editor'), form=$('entry');
+const tree=$('tree');
 const storageKey='ancestry-family-notebook-v1';
 const svgNS='http://www.w3.org/2000/svg';
-const fieldIds={name:'person-name',traits:'traits',memory:'memory',traditions:'traditions',recognition:'recognition'};
 const entries=[
  ['self',t('self'),'self',null,2,2],
  ['mother',t('mother'),'parent','self',1,2,'mother'],
@@ -43,7 +43,7 @@ try{
  const stored=JSON.parse(localStorage.getItem(storageKey)||'{}');
  if(stored&&typeof stored==='object'&&!Array.isArray(stored)) records=stored;
 }catch{}
-let active=null, returnFocus=null, edges;
+let edges;
 const nodes=new Map();
 function el(tag,cls,txt){
  const node=document.createElement(tag);
@@ -67,15 +67,6 @@ for(const city of geo.places){
   cityAliases.set(alias,matches);
  }
 }
-const cityOptions=document.createDocumentFragment();
-for(const city of geo.places){
- const option=el('option');
- option.value=labelCity(city);
- cityOptions.append(option);
-}
-$('city-suggestions').append(cityOptions);
-let draftPlaces=[], editingPin=null;
-const precision=n=>Math.round(n*4)/4;
 function lookupPlace(name){
  const key=normalize(name);
  const exact=cityExact.get(key);
@@ -96,84 +87,14 @@ function baseMap(label){
  if(geo.outlines)svg.append(graphic('path',{d:geo.outlines,class:'world-outline'}));
  return svg;
 }
-function openPin(place,error,trigger){
- const host=$('pin-editor');host.replaceChildren();
- if(!place.name.trim()){error.textContent=t('manualRequire');return;}
- error.textContent='';
- host.hidden=false;editingPin=place;
- host.append(el('p','pin-instruction',t('manualIntro')));
- const svg=baseMap(t('manualMap'));
- svg.setAttribute('tabindex','0');
- const current=validPoint(place.pin)?place.pin:lookupPlace(place.name)||[0,0];
- let [x,y]=project(current);
- const cross=graphic('circle',{cx:x,cy:y,r:8,class:'map-pin-cursor'});
- svg.append(cross);
- function closePicker(){host.hidden=true;host.replaceChildren();editingPin=null;trigger.focus({preventScroll:true});}
- function addPin(){
-  place.pin=[precision(88-y/2.5),precision(x/2.5-180)];
-  error.textContent=t('manualSet');closePicker();
- }
- svg.addEventListener('click',event=>{
-  const point=new DOMPoint(event.clientX,event.clientY).matrixTransform(svg.getScreenCTM().inverse());
-  if(point.x<0||point.x>900||point.y<0||point.y>440)return;
-  x=point.x;y=point.y;addPin();
- });
- svg.addEventListener('keydown',event=>{
-  const moves={ArrowLeft:[-5,0],ArrowRight:[5,0],ArrowUp:[0,-5],ArrowDown:[0,5]};
-  if(moves[event.key]){
-   event.preventDefault();const [dx,dy]=moves[event.key];
-   x=Math.max(0,Math.min(900,x+dx));y=Math.max(0,Math.min(440,y+dy));
-   cross.setAttribute('cx',x);cross.setAttribute('cy',y);
-  }else if(event.key==='Enter'||event.key===' '){event.preventDefault();addPin();}
-  else if(event.key==='Escape'){event.preventDefault();event.stopPropagation();closePicker();}
- });
- host.append(svg);
- const close=el('button','secondary',t('manualClose'));close.type='button';close.addEventListener('click',closePicker);host.append(close);
- host.scrollIntoView({block:'nearest'});svg.focus({preventScroll:true});
-}
-function renderPlaceEditor(){
- const target=$('places-editor'),picker=$('pin-editor');target.replaceChildren();picker.hidden=true;picker.replaceChildren();editingPin=null;
- draftPlaces.forEach((place,index)=>{
-  const row=el('div','place-edit-row');
-  const label=el('label','',t(place.kind));label.htmlFor='ancestry-place-'+index;
-  const input=el('input');input.id=label.htmlFor;input.placeholder=t('hintPlace');input.maxLength=90;input.autocomplete='off';input.setAttribute('list','city-suggestions');input.value=place.name;
-  const information=el('p','place-info',validPoint(place.pin)?t('manualSet'):'');information.setAttribute('role','status');
-  input.addEventListener('input',()=>{
-   if(place.name!==input.value){delete place.pin;information.textContent='';}
-   place.name=input.value;
-   if(editingPin===place){picker.hidden=true;picker.replaceChildren();editingPin=null;}
-  });
-  const controls=el('div','place-controls');
-  const pin=el('button','secondary',t('manual'));pin.type='button';pin.addEventListener('click',()=>openPin(place,information,pin));controls.append(pin);
-  if(place.kind==='past'&&draftPlaces.filter(x=>x.kind==='past').length>1){
-   const remove=el('button','secondary',t('removed'));remove.type='button';remove.addEventListener('click',()=>{draftPlaces.splice(index,1);renderPlaceEditor();$('new-past').focus();});controls.append(remove);
-  }
-  row.append(label,input,controls,information);target.append(row);
- });
- $('new-past').disabled=draftPlaces.filter(x=>x.kind==='past').length>=8;
-}
-$('new-past').addEventListener('click',()=>{
- const index=draftPlaces.length-1;
- draftPlaces.splice(index,0,{kind:'past',name:''});renderPlaceEditor();$('ancestry-place-'+index).focus();
-});
-function loadPlaces(places){
- const stored=Array.isArray(places)?places:[];
- return ['birth','past','current'].flatMap(kind=>{
-  const matching=stored.filter(x=>x?.kind===kind&&typeof x.name==='string').slice(0,kind==='past'?8:1);
-  return matching.length?matching.map(x=>({kind,name:x.name,pin:validPoint(x.pin)?[...x.pin]:undefined})):[{kind,name:''}];
- });
-}
-function collectPlaces(){
- return draftPlaces.filter(p=>p.name.trim()).map(({name,kind,pin})=>validPoint(pin)?{name:name.trim(),kind,pin}:{name:name.trim(),kind});
-}
-function recordPlaces(rec){return Array.isArray(rec?.places)?rec.places.filter(p=>p&&['birth','past','current'].includes(p.kind)&&typeof p.name==='string'&&p.name):[]}
+function recordPlaces(rec){const order={birth:0,past:1,current:2};return Array.isArray(rec?.places)?rec.places.filter(p=>p&&Object.hasOwn(order,p.kind)&&typeof p.name==='string'&&p.name).sort((a,b)=>order[a.kind]-order[b.kind]):[]}
 function renderGeography(){
  const host=$('places-result');host.replaceChildren();
  const families=[...people.values()].map(person=>({person,rec:records[person.id],places:recordPlaces(records[person.id])})).filter(x=>x.places.length);
  host.append(el('h3','',t('mapTitle')));
- if(!families.length){host.append(el('p','',t('mapEmpty')));return;}
- host.append(el('p','',t('mapDesc')));
  const svg=baseMap(t('mapImage'));
+ if(!families.length){host.append(el('p','',t('mapEmpty')),svg);return;}
+ host.append(el('p','',t('mapDesc')));
  const lists=el('ul','places-list');lists.setAttribute('aria-label',t('placeList'));
  const points=[];
  for(const {person,rec,places} of families){
@@ -183,7 +104,7 @@ function renderGeography(){
   let previous=null;
   const cls=person.side||'self';
   for(const place of places){
-   const found=validPoint(place.pin)?place.pin:lookupPlace(place.name);
+   const found=place.unmatched?null:lookupPlace(place.name);
    details.append(el('li','',t(place.kind)+': '+place.name+(found?'':' ('+t('noPin')+')')));
    if(!found){previous=null;continue;}
    const [x,y]=project(found);
@@ -203,7 +124,7 @@ function renderGeography(){
   who.append(details);lists.append(who);
  }
  svg.append(...points);
- if(points.length)host.append(svg,el('p','source-note',t('source')));
+ host.append(svg,el('p','source-note',t('source')));
  host.append(lists);
 }
 
@@ -218,7 +139,7 @@ function rowButton(person){
  button.setAttribute('aria-label',note?role+', '+note:record.name?role+': '+record.name:role);
  button.append(el('span','',record.name||role));
  if(record.name) button.append(el('span','detail',role));
- if(record.traits) button.append(el('span','detail trait',record.traits));
+ if(pickText(record,'traits')) button.append(el('span','detail trait',pickText(record,'traits')));
  button.addEventListener('click',()=>openEditor(id,button));
  node.append(button);
  if(level==='grandparent'){
@@ -280,104 +201,314 @@ function drawEdges(){
 }
 if('ResizeObserver' in window) new ResizeObserver(drawEdges).observe(tree);
 window.addEventListener('resize',drawEdges);
-function openEditor(id,trigger){
- const p=people.get(id);
- const rec=records[id]||{};
- active=id;
- returnFocus=trigger;
- $('save-error').hidden=true;
- $('editor-title').textContent=p.note?p.role+' · '+p.note:p.role;
- $('prompt').textContent=id==='self'?t('promptSelf'):t('promptPerson');
- $('person-name').placeholder=id==='self'?t('nameSelf'):t('namePerson');
- $('recognition-label').textContent=id==='self'?t('legacy'):t('recognize');
- $('recognition').placeholder=id==='self'?t('hintLegacy'):t('hintRecognition');
- for(const [key,input] of Object.entries(fieldIds)) $(input).value=rec[key]||'';
- draftPlaces=loadPlaces(rec.places);renderPlaceEditor();
- dialog.showModal();
- $('close-editor').focus({preventScroll:true});
-}
-$('close-editor').addEventListener('click',()=>dialog.close());
-$('cancel').addEventListener('click',()=>dialog.close());
-dialog.addEventListener('close',()=>{
- const previous=returnFocus;
- if(previous?.isConnected) previous.focus({preventScroll:true});
- else if(active&&nodes.has(active)&&!$('map-view').hidden) nodes.get(active).button.focus({preventScroll:true});
- else if(!$('reflection-view').hidden) $('reflection-title').focus({preventScroll:true});
-});
-form.addEventListener('submit',event=>{
- event.preventDefault();
- if(!active) return;
- const rec=Object.fromEntries(Object.entries(fieldIds).map(([key,input])=>[key,$(input).value.trim()]));
- const next={...records};
- const places=collectPlaces();if(places.length)rec.places=places;
- if(Object.values(rec).some(Boolean)) next[active]=rec;
- else delete next[active];
- try{localStorage.setItem(storageKey,JSON.stringify(next));}
- catch{
-  $('save-error').textContent=t('saveError');
-  $('save-error').hidden=false;
-  return;
- }
- records=next;
- renderTree();
- renderReflections();
- dialog.close();
- $('status').textContent=t('saved');
-});
-function renderReflections(){
- const content=$('reflections');
- content.replaceChildren();
- const filled=[...people.values()].filter(p=>{
-  const record=records[p.id];
-  return record && (record.traits||record.memory||record.traditions||record.recognition||recordPlaces(record).length);
- });
- renderGeography();
- if(!filled.length){
-  content.append(el('p','reflection-item',t('empty')));
-  return;
- }
- const sections=[
-  ['mother',t('material')],['father',t('paternal')],['self',t('own')]
- ];
- const levelKeys={parent:'kindParent',grandparent:'kindGrand',greatgrandparent:'kindGreat'};
- for(const [branch,label] of sections){
-  const branchEntries=filled.filter(person=>(person.side||person.id)===branch);
-  if(!branchEntries.length)continue;
-  const group=el('section','ancestry-result-group '+branch);
-  group.append(el('h3','result-branch',label));
-  const items=el('ol','result-timeline');
-  for(const person of branchEntries){
-   const info=records[person.id];
-   const item=el('li','reflection-item');
-   const generation=levelKeys[person.level]?t(levelKeys[person.level])+' · ':'';
-   item.append(el('p','result-generation',generation+person.role+(person.note?' · '+person.note:'')));
-   if(info.name)item.append(el('h4','result-name',info.name));
-   const facts=el('dl','result-facts');
-   for(const [key,labelKey] of [['traits','traits'],['memory','memory'],['traditions','traditions'],['recognition',person.id==='self'?'legacy':'recognize']]){
-    if(!info[key])continue;
-    const pair=el('div','result-fact '+key);
-    pair.append(el('dt','',t(labelKey)),el('dd','',info[key]));facts.append(pair);
-   }
-   if(recordPlaces(info).length){const pair=el('div','result-fact');pair.append(el('dt','',t('placesHeading')),el('dd','',recordPlaces(info).map(place=>place.name).join(' · ')));facts.append(pair);}
-   item.append(facts);
-   const edit=el('button','result-edit',t('openEntry'));
-   edit.type='button';
-   edit.setAttribute('aria-label',t('openEntry')+': '+(info.name||person.role));
-   edit.addEventListener('click',()=>openEditor(person.id,edit));item.append(edit);
-   items.append(item);
+const steps=['who','birth','past','current','traits','memory','traditions','recognition'];
+const choices={
+ traits:['t_curious','t_caring','t_persistent','t_humor','t_independent','t_practical','t_creative','t_reserved','t_generous','t_courage'],
+ memory:['m_story','m_food','m_trip','m_ritual','m_music','m_small'],
+ traditions:['r_celebration','r_recipes','r_prayer','r_faith','r_community','r_story'],
+ recognition:['c_way','c_value','c_custom','c_craft','c_perspective','c_change']
+};
+const draftKey='ancestry-guided-draft-v1', doneKey='ancestry-guided-complete-v1';
+let mode='wizard', selected='self', stepIndex=0, draft=null, whoOnly=false, hasFinished=false;
+try{hasFinished=localStorage.getItem(doneKey)==='yes';}catch{}
+function cloneRecord(value){
+ const rec=value||{}, next={};
+ if(typeof rec.name==='string')next.name=rec.name;
+ for(const key of Object.keys(choices)){
+  if(typeof rec[key]==='string')next[key]=rec[key];
+  const tokens=rec.picks?.[key];
+  if(Array.isArray(tokens)){
+   next.picks ||= {};next.picks[key]=tokens.filter(t=>choices[key].includes(t));
   }
-  group.append(items);content.append(group);
+ }
+ const places=recordPlaces(rec);
+ if(places.length)next.places=places.map(x=>({...x}));
+ return next;
+}
+function pickNames(rec,key){return (rec?.picks?.[key]||[]).filter(x=>choices[key]?.includes(x)).map(x=>t(x));}
+function pickText(rec,key){return [...pickNames(rec,key),rec?.[key]].filter(Boolean).join(' · ');}
+function preserveDraft(){try{sessionStorage.setItem(draftKey,JSON.stringify({draft,stepIndex,selected,whoOnly}));}catch{}}
+function clearDraft(){try{sessionStorage.removeItem(draftKey);}catch{}}
+function elButton(text,cls,action){
+ const b=el('button',cls,text);b.type='button';b.addEventListener('click',action);return b;
+}
+function setView(view,focus=true){
+ mode=view;
+ $('wizard-view').hidden=view!=='wizard';
+ $('map-view').hidden=view!=='tree';
+ $('reflection-view').hidden=view!=='portrait';
+ $('notebook-nav').hidden=!Object.keys(records).length&&!hasFinished;
+ $('show-reflections').setAttribute('aria-pressed',String(view==='portrait'));
+ $('show-map').setAttribute('aria-pressed',String(view==='tree'));
+ $('start-guided').setAttribute('aria-pressed',String(view==='wizard'));
+ if(view==='portrait')renderPortrait();
+ if(view==='tree')requestAnimationFrame(drawEdges);
+ if(focus)(view==='portrait'?$('reflection-title'):view==='tree'?$('map-title'):$('question-title')).focus();
+}
+function startWizard(person=null,familyOnly=false){
+ whoOnly=familyOnly;
+ selected=person||(familyOnly?'mother':'self');
+ stepIndex=person?1:0;
+ draft=cloneRecord(records[selected]);
+ $('wizard-heading').textContent=t(person&&person!=='self'?'guided':familyOnly?'addFamily':'startTitle');
+ renderQuestion(false);setView('wizard');
+}
+function openEditor(id){startWizard(id);}
+function whoName(){
+ if(draft?.name?.trim())return draft.name.trim();
+ const person=people.get(selected);
+ if(locale==='pt'){
+  const feminine=['mother','mm','fm'].includes(selected)||(selected.length===3&&selected.endsWith('m'));
+  return (feminine?'sua ':'seu ')+person.role.toLocaleLowerCase(locale);
+ }
+ if(locale==='es')return 'tu '+person.role.toLocaleLowerCase(locale);
+ return 'your '+person.role.toLocaleLowerCase(locale);
+}
+function setSelection(id){
+ if(selected===id)return;
+ selected=id;draft=cloneRecord(records[id]);renderQuestion(false);
+ document.querySelector(`[data-who="${id}"]`)?.focus({preventScroll:true});
+}
+function drawWho(host){
+ const group=el('div','who-grid');
+ function tile(person){
+  const chosen=selected===person.id;
+  const label=records[person.id]?.name?.trim();
+  const tile=elButton(label||person.role,'choice person-choice',()=>setSelection(person.id));
+  tile.dataset.who=person.id;tile.setAttribute('aria-pressed',chosen);
+  if(label||person.note)tile.append(el('span','choice-meta',person.note||person.role));
+  if(person.id==='self')tile.classList.add('self-choice');
+  return tile;
+ }
+ for(const person of [...people.values()].filter(p=>p.level==='self'||p.level==='parent')){
+  if(!whoOnly||person.id!=='self')group.append(tile(person));
+ }
+ host.append(group);
+ const expanded=el('details','more-people');
+ expanded.open=!['self','mother','father'].includes(selected);
+ expanded.append(el('summary','',t('other')));
+ const relatives=el('div','who-grid relatives');
+ for(const person of [...people.values()].filter(p=>p.level==='grandparent'||p.level==='greatgrandparent'))relatives.append(tile(person));
+ expanded.append(relatives);host.append(expanded);
+ const details=el('details','optional-note');
+ const summary=el('summary','',t('includeName'));
+ const label=el('label','sr',t('nameShort'));label.htmlFor='profile-name';
+ const input=el('input');input.id=label.htmlFor;input.maxLength=80;input.autocomplete='off';input.value=draft.name||'';input.placeholder=t('nameShort');
+ input.addEventListener('input',()=>{draft.name=input.value;});
+ details.open=Boolean(draft.name);details.append(summary,label,input);host.append(details);
+}
+let readCity=null;
+function drawPlaces(host,kind){
+ const label=el('label','search-label',t('cityLabel'));label.htmlFor='city-search';
+ const field=el('input','city-search');field.type='search';field.id='city-search';field.maxLength=90;field.autocomplete='off';field.placeholder=t('cityHint');
+ const saved=el('ul','chosen-places');const matches=el('ul','city-matches');
+ const status=el('span','sr');status.setAttribute('role','status');
+ function candidates(value){
+  const query=normalize(value);if(query.length<2)return [];
+  const words=query.replace(/,/g,' ').split(/\s+/).filter(Boolean);
+  return geo.places.map(p=>{
+    const city=normalize(p[0]), whole=normalize([p[0],p[1],p[4],p[5]].join(' ').replace(/,/g,' '));
+    return {p,score: city===query?3:city.startsWith(query)?2:words.every(word=>whole.includes(word))?1:0};
+  }).filter(x=>x.score).sort((a,b)=>b.score-a.score).slice(0,6).map(x=>x.p);
+ }
+ function put(value,matched=false){
+  const name=value.trim();
+  if(!name)return;
+  const places=recordPlaces(draft);
+  const existing=places.filter(p=>p.kind===kind);
+  if(kind==='past'&&existing.length>=8)return;
+  const keep=kind==='past'?places:places.filter(x=>x.kind!==kind);
+  if(keep.some(p=>p.kind===kind&&normalize(p.name)===normalize(name)))return;
+  draft.places=[...keep,{kind,name,...(matched?{}:{unmatched:true})}];
+  field.value='';paint();status.textContent=t('cityAdded');field.focus({preventScroll:true});
+ }
+ function paint(){
+  saved.replaceChildren();matches.replaceChildren();
+  const places=recordPlaces(draft).filter(x=>x.kind===kind);
+  for(const place of places){
+   const li=el('li','chosen-city');
+   li.append(el('span','',place.name),elButton(t('cityChange'),'skip-option',()=>{
+    draft.places=recordPlaces(draft).filter(p=>p!==place);paint();field.focus({preventScroll:true});
+   }));saved.append(li);
+  }
+  if(field.value.trim().length<2)return;
+  const options=candidates(field.value);
+  for(const city of options){
+   const li=el('li');li.append(elButton(labelCity(city),'city-option',()=>put(labelCity(city),true)));
+   matches.append(li);
+  }
+  if(!options.length){
+   const li=el('li','no-city');li.append(el('p','',t('cityNoMatch')),elButton(t('cityKeep'),'secondary',()=>commitInput()));
+   matches.append(li);
+  }
+ }
+ function commitInput(){
+  const name=field.value.trim();
+  if(!name)return;
+  const city=candidates(name).find(x=>normalize(labelCity(x))===normalize(name));
+  if(city){put(labelCity(city),true);return;}
+  put(name,Boolean(lookupPlace(name)));
+ }
+ readCity=commitInput;
+ field.addEventListener('input',paint);
+ field.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();commitInput();}
+  if(e.key==='ArrowDown'&&matches.querySelector('button')){e.preventDefault();matches.querySelector('button').focus();}
+ });
+ paint();
+ host.append(label,field,matches,saved,status);
+ if(kind==='past')host.append(el('p','help-note',t('cityMore')));
+}
+function drawChoices(host,key){
+ const group=el('div','answer-choices');
+ const buttons=[];
+ const opts=choices[key];
+ for(const x of opts){
+  const btn=elButton(t(x),'choice',()=>{
+   draft.picks ||= {};
+   const picked=new Set(draft.picks[key]||[]);
+   const isOn=picked.has(x);
+   if(isOn)picked.delete(x);else picked.add(x);
+   draft.picks[key]=[...picked];btn.setAttribute('aria-pressed',String(!isOn));
+   message.textContent='';
+  });
+  btn.setAttribute('aria-pressed',String(draft.picks?.[key]?.includes(x)||false));buttons.push(btn);group.append(btn);
+ }
+ const details=el('details','optional-note');details.open=!!draft[key];
+ const summary=el('summary','',t('addDetail'));
+ const label=el('label','sr',t('detail'));label.htmlFor='note-detail';
+ const input=el('textarea');input.id=label.htmlFor;
+ input.rows=2;input.maxLength=Math.max(220,(draft[key]||'').length);input.value=draft[key]||'';input.placeholder=t('detail');
+ input.addEventListener('input',()=>{draft[key]=input.value;message.textContent='';});
+ const message=el('p','help-note');message.setAttribute('role','status');
+ details.append(summary,label,input);
+ host.append(group,details);
+ if(key==='traditions'){
+  host.append(elButton(t('noAnswer'),'skip-option privacy-choice',()=>{
+   if(draft.picks)delete draft.picks[key];
+   delete draft[key];input.value='';details.open=false;buttons.forEach(btn=>btn.setAttribute('aria-pressed','false'));
+   message.textContent=t('noAnswerMarked');
+  }),message);
  }
 }
-function showView(reflection){
- $('map-view').hidden=reflection;
- $('reflection-view').hidden=!reflection;
- $('show-map').setAttribute('aria-pressed',String(!reflection));
- $('show-reflections').setAttribute('aria-pressed',String(reflection));
- if(!reflection) requestAnimationFrame(drawEdges);
+function renderQuestion(moveFocus=true){
+ const key=steps[stepIndex], self=selected==='self', who=whoName();
+ const host=$('question-content');host.replaceChildren();readCity=null;
+ $('save-error').hidden=true;
+ $('step-count').textContent=t('stepNote',{current:stepIndex+1,total:steps.length});
+ $('journey-progress').value=stepIndex+1;
+ const milestones=$('milestones');milestones.replaceChildren();
+ const progressIndex=stepIndex===0?0:stepIndex<4?1:2;
+ ['chapterWho','chapterPlace','chapterStory'].forEach((ch,i)=>{
+  const li=el('li',i===progressIndex?'milestone active':i<progressIndex?'milestone done':'milestone',t(ch));
+  if(i===progressIndex)li.setAttribute('aria-current','step');
+  milestones.append(li);
+ });
+ let promptKey,helpKey;
+ if(key==='who'){promptKey='whoTitle';helpKey='whoHelp';drawWho(host);}
+ else if(['birth','past','current'].includes(key)){promptKey=key+(self?'Self':'Q');helpKey='cityHelp';drawPlaces(host,key);}
+ else{
+  const k={traits:'traits',memory:'memo',traditions:'trad',recognition:'carry'}[key];promptKey=k+(self?'Self':'Q');helpKey=key==='traditions'?'privateChoice':'tapMany';drawChoices(host,key);
+ }
+ $('question-title').textContent=t(promptKey,{who});$('question-help').textContent=t(helpKey);
+ $('wizard-back').hidden=stepIndex===0;
+ $('wizard-skip').hidden=stepIndex===0;
+ $('wizard-exit').hidden=!Object.keys(records).length&&!hasFinished;
+ $('wizard-context').hidden=stepIndex>0;
+ $('wizard-next').textContent=t(stepIndex===steps.length-1?'finish':'continue');
+ if(moveFocus)$('question-title').focus();
 }
-$('show-map').addEventListener('click',()=>showView(false));
-$('show-reflections').addEventListener('click',()=>showView(true));
-$('edit-self').addEventListener('click',()=>openEditor('self',$('edit-self')));
+function savePortrait(){
+ const next={...records};
+ const rec=cloneRecord(draft);
+ for(const key of ['name',...Object.keys(choices)]){
+  if(rec[key]?.trim())rec[key]=rec[key].trim();else delete rec[key];
+  if(rec.picks&&!rec.picks[key]?.length)delete rec.picks[key];
+ }
+ if(rec.picks&&!Object.keys(rec.picks).length)delete rec.picks;
+ if(Object.keys(rec).length)next[selected]=rec;else delete next[selected];
+ try{localStorage.setItem(storageKey,JSON.stringify(next));localStorage.setItem(doneKey,'yes');}
+ catch{$('save-error').textContent=t('saveError');$('save-error').hidden=false;return;}
+ records=next;hasFinished=true;clearDraft();renderTree();setView('portrait');
+ $('status').textContent=t('savedNotice');
+}
+function advance(skip=false){
+ if(stepIndex===steps.length-1){savePortrait();return;}
+ if(!skip&&readCity)readCity();
+ stepIndex++;renderQuestion();
+}
+$('wizard-next').addEventListener('click',()=>advance());
+$('wizard-skip').addEventListener('click',()=>advance(true));
+$('wizard-back').addEventListener('click',()=>{if(stepIndex>0)stepIndex--;renderQuestion();});
+$('wizard-exit').addEventListener('click',()=>{clearDraft();setView('portrait');});
+$('show-map').addEventListener('click',()=>setView('tree'));
+$('show-reflections').addEventListener('click',()=>setView('portrait'));
+$('start-guided').addEventListener('click',()=>startWizard());
+$('add-family').addEventListener('click',()=>startWizard(null,true));
+$('edit-self').addEventListener('click',()=>startWizard('self'));
+function makeFact(rec,key,labelKey){
+ const text=pickText(rec,key);
+ if(!text)return null;
+ const pair=el('div','portrait-fact '+key);
+ pair.append(el('dt','',t(labelKey)),el('dd','',text));return pair;
+}
+function entryFacts(rec,self){
+ const list=el('dl','portrait-facts');
+ for(const [key,label] of [['traits','traits'],['memory','memory'],['traditions','traditions'],['recognition',self?'legacy':'recognize']]){
+  const fact=makeFact(rec,key,label);if(fact)list.append(fact);
+ }
+ const places=recordPlaces(rec);
+ if(places.length){const pair=el('div','portrait-fact');pair.append(el('dt','',t('chapterPlace')),el('dd','',places.map(v=>v.name).join(' · ')));list.append(pair);}
+ return list;
+}
+function renderPortrait(){
+ const personal=$('profile-result'), common=$('common-result'), list=$('reflections'), totals=$('portrait-counts');
+ personal.replaceChildren();common.replaceChildren();list.replaceChildren();totals.replaceChildren();
+ const filled=[...people.values()].filter(p=>records[p.id]);
+ const n=filled.length,m=new Set(filled.flatMap(person=>recordPlaces(records[person.id]).map(v=>normalize(v.name)))).size;
+ if(n)totals.append(el('span','portrait-count',t(n===1?'onePerson':'nPeople',{n})));
+ if(m)totals.append(el('span','portrait-count',t(m===1?'onePlace':'nPlaces',{n:m})));
+ renderGeography();
+ const card=el('section','profile-card');
+ card.append(el('p','kicker',t('personal')));
+ if(records.self){
+   card.append(el('h2','',records.self.name||t('self')),el('p','',t('profileStory')),entryFacts(records.self,true));
+ }else card.append(el('h2','',t('own')),el('p','',t('profileEmpty')));
+ personal.append(card);
+ const traits=choices.traits.map(token=>[token,filled.filter(p=>records[p.id]?.picks?.traits?.includes(token))]).filter(([,members])=>members.length>1);
+ if(traits.length){
+  const group=el('section','pattern-card');group.append(el('h2','',t('common')),el('p','',t('commonNote')));
+  const items=el('ul','pattern-list');
+  for(const [trait,members] of traits){
+   const li=el('li','');li.append(el('strong','',t(trait)),el('span','',members.map(p=>records[p.id].name||p.role).join(' · ')));items.append(li);
+  }
+  group.append(items);common.append(group);
+ }
+ const generations={parent:'kindParent',grandparent:'kindGrand',greatgrandparent:'kindGreat'};
+ for(const side of ['mother','father']){
+  const members=filled.filter(p=>p.side===side);
+  if(!members.length)continue;
+  const group=el('section','ancestry-result-group '+side);
+  group.append(el('h2','result-branch',t(side==='mother'?'material':'paternal')));
+  const timeline=el('ol','result-timeline');
+  for(const person of members){
+   const rec=records[person.id], item=el('li','reflection-item');
+   const role=person.role+(person.note?' · '+person.note:'');
+   item.append(el('p','result-generation',t(generations[person.level])+' · '+role));
+   if(rec.name)item.append(el('h3','result-name',rec.name));
+   item.append(entryFacts(rec,false));
+   const edit=elButton(t('openEntry'),'result-edit',()=>openEditor(person.id));
+   edit.setAttribute('aria-label',t('openEntry')+': '+(rec.name||role));item.append(edit);timeline.append(item);
+  }
+  group.append(timeline);list.append(group);
+ }
+}
 renderTree();
-renderReflections();
+let savedDraft=null;
+try{savedDraft=JSON.parse(sessionStorage.getItem(draftKey)||'null');}catch{}
+clearDraft();
+if(savedDraft&&people.has(savedDraft.selected)&&Number.isInteger(savedDraft.stepIndex)&&savedDraft.stepIndex>0&&savedDraft.stepIndex<steps.length){
+ selected=savedDraft.selected;draft=cloneRecord(savedDraft.draft);stepIndex=savedDraft.stepIndex;whoOnly=Boolean(savedDraft.whoOnly);
+ renderQuestion(false);setView('wizard',false);
+}else if(Object.keys(records).length||hasFinished)setView('portrait',false);
+else{draft=cloneRecord(records.self);renderQuestion(false);setView('wizard',false);}

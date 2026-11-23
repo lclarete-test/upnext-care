@@ -120,3 +120,77 @@ body.upnext-ancestry{--page:var(--un-color-cream);--paper:var(--un-color-paper);
 .place-person{overflow-wrap:anywhere;margin:5px 0}
 .place-person ul{padding-left:20px}
 @media(max-width:480px){.upnext-ancestry .topbar nav a{font-size:.8rem}.ancestry-lang span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.upnext-ancestry .bar{gap:6px}.upnext-ancestry .brand img{width:clamp(88px,26vw,122px)}}
+
+/* Ancestry's guided storybook and completed family portrait. */
+.journey-nav{display:flex;flex-wrap:wrap;gap:5px;border-bottom:1px solid var(--line);margin:16px 0 18px}
+.journey-nav button{background:none;color:var(--sub);border:none;border-bottom:3px solid transparent;padding:8px 10px;min-height:44px;font-weight:700}
+.journey-nav button[aria-pressed=true]{border-color:var(--green);color:var(--green)}
+.wizard{max-width:760px;margin:clamp(16px,4vw,42px) auto 0}
+.wizard-intro{padding:0 3px 13px}
+.wizard-intro strong{display:block;margin:4px 0;font:400 clamp(1.9rem,6vw,3rem)/1.1 var(--serif);color:var(--green)}
+.wizard-intro>p:last-child{color:var(--sub);max-width:44ch}
+.question-paper{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:clamp(14px,4vw,27px);box-shadow:0 8px 30px #193c320b}
+.journey-status{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;font-size:.875rem;font-weight:700;color:var(--sub)}
+#milestones{display:flex;gap:5px;align-items:center;margin:0;padding:0;list-style:none}
+.milestone{padding:3px 8px;border-radius:999px;background:#edeae1;font-size:.78rem;white-space:nowrap}
+.milestone.done{background:#e5efdf;color:var(--green)}
+.milestone.active{background:var(--green);color:white}
+#journey-progress{display:block;width:100%;margin:9px 0 13px;height:7px;accent-color:var(--green);background:#e9eadf;border:none;border-radius:10px;overflow:hidden}
+#journey-progress::-webkit-progress-bar{background:#e9eadf}
+#journey-progress::-webkit-progress-value{background:var(--green);border-radius:10px}
+.question-body h1{margin:0;color:var(--ink);font-size:clamp(1.55rem,5vw,2.7rem)}
+.question-body>p{margin:5px 0 11px;color:var(--sub)}
+.question-body #save-error{color:#952b27}
+.who-grid,.answer-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.choice{min-width:0;min-height:46px;border:1px solid #acb9ab;border-radius:12px;text-align:left;background:#fffefa;color:var(--ink);padding:8px 11px;font-weight:650;line-height:1.25;overflow-wrap:anywhere}
+.choice[aria-pressed=true]{border:2px solid var(--green);padding:7px 10px;background:#e2efdc;color:var(--green)}
+.choice:hover{background:#eef4e8}
+.choice-meta{display:block;font-size:.8125rem;font-weight:400;color:var(--sub);margin-top:3px}
+.more-people,.optional-note{margin:6px 0 0}
+.more-people summary,.optional-note summary{display:list-item;cursor:pointer;min-height:44px;padding:9px 0;color:var(--green);font-weight:650}
+.more-people[open] summary,.optional-note[open] summary{margin-bottom:6px}
+.who-grid.relatives{grid-template-columns:repeat(2,minmax(0,1fr))}
+.wizard-actions{position:sticky;bottom:0;display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid var(--line);padding:10px 0 0;margin-top:14px;background:var(--paper);z-index:2}
+.wizard-actions .primary{flex:0 0 auto}
+.wizard-actions #wizard-back{margin-right:auto}
+.skip-option{border:0;background:transparent;color:var(--green);font:inherit;font-weight:650;text-align:left;text-decoration:underline;text-underline-offset:3px;min-height:44px;padding:5px}
+.wizard-cancel{font-size:.875rem;margin-top:2px}
+.privacy-choice{margin-top:6px}
+.search-label{display:block;font-weight:650;margin-bottom:3px}
+.city-matches,.chosen-places{padding:0;margin:5px 0;list-style:none;display:grid;gap:5px}
+.city-option{width:100%;text-align:left;min-height:44px;background:#fffefa;border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:8px 10px}
+.city-option:hover{background:#e2efdc}
+.chosen-city{display:flex;align-items:center;justify-content:space-between;gap:8px;border-radius:8px;background:#e2efdc;padding:0 8px;overflow-wrap:anywhere}
+.help-note,.no-city p{color:var(--sub);font-size:.875rem}
+.portrait{margin-top:8px}
+.portrait-header{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;flex-wrap:wrap;padding:clamp(18px,4vw,30px);background:var(--green);color:white;border-radius:18px}
+.portrait-header .kicker{color:#e0edd8}
+.portrait-header h1{margin:4px 0;font-size:clamp(2rem,6vw,4rem);color:#fffefa}
+.portrait-header p:not(.kicker){color:#e0ede2;max-width:52ch}
+.portrait-counts{display:flex;flex-wrap:wrap;gap:5px}
+.portrait-count{border:1px solid #c5ddc9;border-radius:999px;padding:3px 9px;font-size:.85rem}
+.portrait .places-result{margin:9px 0;padding:clamp(10px,3vw,19px)}
+.portrait .geography{aspect-ratio:900/410;min-height:115px;margin-top:7px}
+.portrait .places-result h3{font-size:1.45rem}
+.profile-card,.pattern-card{padding:14px 17px;border:1px solid var(--line);border-radius:14px;background:var(--paper);margin:9px 0}
+.portrait-facts{margin:6px 0 0;display:grid;gap:7px}
+.portrait-fact dt{font-weight:750;color:var(--green)}
+.portrait-fact dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.portrait-fact.recognition{border-inline-start:3px solid var(--branch,var(--green));padding-inline-start:8px}
+.pattern-list{padding-left:24px;margin:6px 0}
+.pattern-list li span{display:block;color:var(--sub)}
+.portrait-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+@media(min-width:680px){
+ .who-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .who-grid.relatives,.answer-choices{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .portrait #reflections{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:465px){
+ .wizard-intro{padding-bottom:8px}
+ .question-paper{border-radius:16px}
+ .wizard-actions{gap:4px}
+ .wizard-actions .secondary,.wizard-actions .primary{padding-inline:9px}
+ .wizard-actions .skip-option{font-size:.88rem}
+ .portrait-header{padding:13px 14px}
+ .portrait-header h1{font-size:1.9rem}
+}
