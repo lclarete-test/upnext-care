@@ -76,3 +76,47 @@ body.upnext-ancestry{--page:var(--un-color-cream);--paper:var(--un-color-paper);
 .upnext-ancestry .masthead{border-color:var(--un-color-line)}
 .ancestry-skip{position:fixed;z-index:10;top:8px;left:8px;transform:translateY(-140%);background:var(--paper);color:var(--green);padding:8px 12px}
 .ancestry-skip:focus{transform:translateY(0)}
+
+.ancestry-lang{display:flex;align-items:center;gap:6px;font-size:.875rem}
+.ancestry-lang select{max-width:118px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--green);font:inherit;min-height:40px;padding:4px}
+.upnext-ancestry .bar{display:grid;grid-template-columns:auto 1fr auto}
+.upnext-ancestry .topbar nav{text-align:right}
+.ancestry-result-group{--branch:#94658c;border-radius:14px;background:#f8f0f8;padding:14px}
+.ancestry-result-group.father{--branch:#5f8e7c;background:#edf6ee}
+.ancestry-result-group.self{--branch:#9b7048;background:#faf4e9}
+.result-branch{font-size:1.5rem}
+.result-timeline{list-style:none;padding:0 0 0 14px;margin:11px 0 0;border-left:2px solid var(--branch);display:grid;gap:12px}
+.result-timeline .reflection-item{position:relative;background:var(--paper);border:1px solid var(--line)}
+.result-timeline .reflection-item:before{content:"";position:absolute;left:-21px;top:18px;border:2px solid var(--paper);background:var(--branch);border-radius:50%;width:10px;height:10px}
+.result-generation{font-size:.875rem;font-weight:650;color:var(--sub)}
+.result-name{margin:0;font-size:1.1rem;color:var(--green);overflow-wrap:anywhere}
+.result-facts{margin:7px 0;display:grid;gap:6px}
+.result-fact dt{font-weight:650;color:var(--green)}
+.result-fact dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.result-fact.recognition{border-left:3px solid var(--branch);padding-left:9px}
+.result-edit{display:inline-flex;align-items:center;min-height:44px;padding:0;background:transparent;border:0;text-decoration:underline;color:var(--green);font-weight:650}
+.places-fields{margin:16px 0 0;padding:12px;min-width:0;border:1px solid var(--line);border-radius:12px}
+.places-fields legend{padding:0 6px;font-weight:700;color:var(--green)}
+.places-fields p{color:var(--sub);font-size:.875rem}
+.place-edit-row{padding:10px 0;display:grid;gap:4px}
+.place-edit-row label{font-weight:650}
+.place-controls{display:flex;flex-wrap:wrap;gap:6px}
+.place-controls button{border:0;padding:0 8px;text-decoration:underline;color:var(--green)}
+.place-info:empty{display:none}
+#pin-editor{margin-top:12px}
+#pin-editor svg{cursor:crosshair}
+.places-result{margin:16px 0 10px;border-radius:14px;background:#f5f6ef;border:1px solid var(--line);padding:12px}
+.places-result h3{font-size:1.45rem}
+.places-result>p{color:var(--sub);font-size:.875rem;margin:4px 0}
+.geography{display:block;width:100%;height:auto;aspect-ratio:900/440;background:#e6f0ef;border-radius:10px;overflow:hidden;margin:8px 0}
+.world-outline{fill:#c9ddc2;stroke:#83a29a;stroke-width:.7;fill-rule:evenodd}
+.geo-dot,.geo-line{--route:#624162}
+.geo-dot.father,.geo-line.father{--route:#17594e}
+.geo-dot.self,.geo-line.self{--route:#83572f}
+.geo-line{stroke:var(--route);stroke-width:2;stroke-dasharray:4 3}
+.geo-dot{fill:var(--route);stroke:white;stroke-width:1.4}
+.map-pin-cursor{fill:var(--green);stroke:var(--paper);stroke-width:2}
+.places-list{padding-left:21px;margin:9px 0 0}
+.place-person{overflow-wrap:anywhere;margin:5px 0}
+.place-person ul{padding-left:20px}
+@media(max-width:480px){.upnext-ancestry .topbar nav a{font-size:.8rem}.ancestry-lang span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.upnext-ancestry .bar{gap:6px}.upnext-ancestry .brand img{width:clamp(88px,26vw,122px)}}

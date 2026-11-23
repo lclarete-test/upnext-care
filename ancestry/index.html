@@ -11,52 +11,58 @@
 <link rel="icon" href="/upnext-logo.svg">
 <title>Ancestry: um mapa da sua história</title>
 <meta name="description" content="Um mapa para explorar sua família, guardar lembranças e perceber o que você reconhece em si.">
-<link rel="stylesheet" href="style.css">
-<script src="app.js" defer></script>
+<link rel="stylesheet" href="style.css?v=20261123-map">
+<script src="strings.js?v=20261123-map" defer></script>
+<script src="geo.js?v=20261123-map" defer></script>
+<script src="app.js?v=20261123-map" defer></script>
 </head>
 <body class="upnext-identity upnext-ancestry">
-<a class="ancestry-skip" href="#main">Pular para a árvore</a>
+<a class="ancestry-skip" href="#main" data-t="skip">Pular para a árvore</a>
 <header class="masthead topbar">
  <div class="bar">
-  <a class="brand upnext-brand" href="/" aria-label="Página inicial do UpNext Care"><img src="/upnext-logo.svg" alt="UpNext Care"></a>
-  <nav aria-label="Navegação do UpNext Care"><a href="/patients/#wellbeing">Voltar ao bem-estar</a></nav>
+  <a class="brand upnext-brand" href="/" aria-label="Página inicial do UpNext Care" data-aria="home"><img src="/upnext-logo.svg" alt="UpNext Care"></a>
+  <nav aria-label="Navegação do UpNext Care" data-aria="nav"><a id="wellbeing-return" href="/#wellbeing" data-t="back">Voltar ao bem-estar</a></nav>
+  <label class="ancestry-lang"><span data-t="lang">Idioma</span><select id="ancestry-lang"><option value="en" lang="en">English</option><option value="pt" lang="pt-BR">Português</option><option value="es" lang="es">Español</option></select></label>
  </div>
 </header>
 <main id="main" tabindex="-1">
  <section class="intro" aria-labelledby="title">
-  <p class="kicker">ANCESTRY · CADERNO DE FAMÍLIA</p>
-  <h1 id="title">Um mapa da sua história</h1>
-  <p>Comece por você. Explore quem veio antes e guarde o que quiser lembrar.</p>
+  <p class="kicker" data-t="kicker">ANCESTRY · CADERNO DE FAMÍLIA</p>
+  <h1 id="title" data-t="heading">Um mapa da sua história</h1>
+  <p data-t="intro">Comece por você. Explore quem veio antes e guarde o que quiser lembrar.</p>
  </section>
- <nav class="tabs" aria-label="Visões do mapa">
-  <button type="button" id="show-map" aria-pressed="true">Minha árvore</button>
-  <button type="button" id="show-reflections" aria-pressed="false">O que vejo em mim</button>
+ <nav class="tabs" aria-label="Visões do mapa" data-aria="views">
+  <button type="button" id="show-map" aria-pressed="true" data-t="map">Minha árvore</button>
+  <button type="button" id="show-reflections" aria-pressed="false" data-t="visual">Meu mapa visual</button>
  </nav>
  <section id="map-view" class="paper" aria-labelledby="map-title">
-  <div class="section-head"><div><h2 id="map-title">Sua árvore</h2><p>Toque em um cartão para escrever sobre alguém. Todos os campos são opcionais.</p></div><span class="count" id="count" aria-live="polite"></span></div>
-  <div class="map" id="tree" aria-label="Árvore genealógica" role="group"></div>
-  <p class="tip" id="tip">Os botões <strong>+</strong> abrem os ramos dos bisavós.</p>
+  <div class="section-head"><div><h2 id="map-title" data-t="treeTitle">Sua árvore</h2><p data-t="treeIntro">Toque em um cartão para escrever sobre alguém. Todos os campos são opcionais.</p></div><span class="count" id="count" aria-live="polite"></span></div>
+  <div class="map" id="tree" aria-label="Árvore genealógica" data-aria="tree" role="group"></div>
+  <p class="tip" id="tip">Os botões + abrem os ramos dos bisavós.</p>
  </section>
  <section id="reflection-view" class="paper" aria-labelledby="reflection-title" hidden>
-  <div class="section-head"><div><h2 id="reflection-title" tabindex="-1">O que vejo em mim</h2><p>Releia o que você registrou. Você decide o que faz parte da sua história e o que quer levar adiante.</p></div></div>
+  <div class="section-head"><div><h2 id="reflection-title" tabindex="-1" data-t="visual">Meu mapa visual</h2><p data-t="visualIntro">Seu mapa reúne o que você escreveu, de quem veio cada lembrança e o que você reconhece em si. Não é um teste nem uma pontuação.</p></div></div>
+  <div id="places-result" class="places-result"></div>
   <div id="reflections" class="reflections"></div>
-  <button type="button" id="edit-self" class="primary">Escrever sobre mim</button>
+  <button type="button" id="edit-self" class="primary" data-t="writeSelf">Escrever sobre mim</button>
  </section>
- <footer><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 10V7a6 6 0 0 1 12 0v3M4 10h16v12H4zM12 14v4"/></svg><p>As anotações ficam só neste navegador. Elas não são enviadas ao site nem sincronizadas entre dispositivos.</p></footer>
+ <footer><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 10V7a6 6 0 0 1 12 0v3M4 10h16v12H4zM12 14v4"/></svg><p data-t="privacy">As anotações ficam só neste navegador. Elas não são enviadas ao site nem sincronizadas entre dispositivos.</p></footer>
  <p id="status" class="sr" role="status"></p>
 </main>
 <dialog id="editor" aria-labelledby="editor-title">
  <form id="entry">
-  <div class="editor-head"><div><p class="kicker">CADERNO DE FAMÍLIA</p><h2 id="editor-title"></h2></div><button type="button" id="close-editor" class="close" aria-label="Fechar ficha">×</button></div>
+  <div class="editor-head"><div><p class="kicker" data-t="notebook">CADERNO DE FAMÍLIA</p><h2 id="editor-title"></h2></div><button type="button" id="close-editor" class="close" aria-label="Fechar ficha" data-aria="close">×</button></div>
   <p id="prompt" class="prompt"></p>
   <div class="fields">
-   <label for="person-name">Nome ou apelido <span>opcional</span></label><input id="person-name" maxlength="80" autocomplete="off" placeholder="Como você chama essa pessoa?">
-   <label for="traits">Traços e jeitos <span>opcional</span></label><textarea id="traits" rows="2" maxlength="2000" placeholder="Um jeito de falar, um hábito, um valor…"></textarea>
-   <label for="memory">Lembranças <span>opcional</span></label><textarea id="memory" rows="2" maxlength="2000" placeholder="Uma cena, uma história ou algo que ouviu contar…"></textarea>
-   <label for="recognition"><span id="recognition-label" class="field-title">O que reconheço em mim</span> <span>opcional</span></label><textarea id="recognition" rows="2" maxlength="2000" placeholder="O que disso aparece em você?"></textarea>
+   <label for="person-name"><span class="field-title" data-t="name">Nome ou apelido</span> <span data-t="optional">opcional</span></label><input id="person-name" maxlength="80" autocomplete="off" placeholder="Como você chama essa pessoa?" data-hint="namePerson">
+   <label for="traits"><span class="field-title" data-t="traits">Traços e jeitos</span> <span data-t="optional">opcional</span></label><textarea id="traits" rows="2" maxlength="2000" placeholder="Um jeito de falar, um hábito, um valor…" data-hint="hintTraits"></textarea>
+   <label for="memory"><span class="field-title" data-t="memory">Lembranças</span> <span data-t="optional">opcional</span></label><textarea id="memory" rows="2" maxlength="2000" placeholder="Uma cena, uma história ou algo que ouviu contar…" data-hint="hintMemory"></textarea>
+   <label for="traditions"><span class="field-title" data-t="traditions">Religião ou tradições</span> <span data-t="optional">opcional</span></label><textarea id="traditions" rows="2" maxlength="2000" placeholder="Uma celebração, prática, crença ou costume…" data-hint="hintTraditions"></textarea>
+   <label for="recognition"><span id="recognition-label" class="field-title">O que reconheço em mim</span> <span data-t="optional">opcional</span></label><textarea id="recognition" rows="2" maxlength="2000" placeholder="O que disso aparece em você?" data-hint="hintRecognition"></textarea>
   </div>
+  <fieldset class="places-fields"><legend data-t="placesHeading">Lugares da vida</legend><p data-t="placesHelp">Registre só cidade ou região, sem endereço. Escolha uma sugestão ou use um ponto aproximado no mapa.</p><div id="places-editor"></div><button type="button" class="secondary" id="new-past" data-t="addPast">Adicionar cidade anterior</button><datalist id="city-suggestions"></datalist><div id="pin-editor" hidden></div></fieldset>
   <p class="message" id="save-error" role="alert" hidden></p>
-  <div class="actions"><button id="cancel" type="button" class="secondary">Cancelar</button><button type="submit" class="primary">Salvar ficha</button></div>
+  <div class="actions"><button id="cancel" type="button" class="secondary" data-t="cancel">Cancelar</button><button type="submit" class="primary" data-t="save">Salvar ficha</button></div>
  </form>
 </dialog>
 </body>
